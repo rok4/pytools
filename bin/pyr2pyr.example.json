@@ -1,0 +1,20 @@
+{
+	"logger": {
+		"level": "INFO"
+	},
+	"from": {
+		"descriptor": "file:///data/pyramids/STATES.json"
+	},
+	"to": {
+		"name": "world/states",
+		"storage": {
+			"type": "S3",
+			"root": "pyramids"
+		}
+	},
+	"process": {
+		"directory": "s3://bucket_temp/pyr2pyr",
+		"parallelization": 3,
+		"slab_limit": 123456
+	}
+}

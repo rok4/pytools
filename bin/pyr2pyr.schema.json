@@ -1,0 +1,113 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "PYR2PYR configuration",
+    "type": "object",
+    "required": [
+        "to",
+        "from",
+        "process"
+    ],
+    "properties": {
+        "logger": {
+            "type": "object",
+            "description": "Logger configuration",
+            "properties": {
+                "layout": {
+                    "type": "string",
+                    "description": "Log format, according to logging python library",
+                    "default": "%(asctime)s %(levelname)s: %(message)s"
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Path to log file. Standard output is used if not provided"
+                },
+                "level": {
+                    "type": "string",
+                    "description": "Log level",
+                    "enum": [
+                        "DEBUG",
+                        "INFO",
+                        "WARNING",
+                        "ERROR",
+                        "CRITICAL",
+                        "NOTSET"
+                    ],
+                    "default": "WARNING"
+                }
+            }
+        },
+        "from": {
+            "type": "object",
+            "description": "Pyramid to copy",
+            "required": ["descriptor"],
+            "properties": {
+                "descriptor": {
+                    "type": "string",
+                    "description": "Path to pyramid's descriptor to copy"
+                }
+            }
+        },
+        "to": {
+            "type": "object",
+            "description": "Pyramid to write",
+            "required": ["name", "storage"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Output pyramid's name"
+                },
+                "storage": {
+                    "type": "object",
+                    "required": ["type", "root"],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Storage type",
+                            "enum": [
+                                "FILE", "S3", "CEPH"
+                            ]
+                        },
+                        "root": {
+                            "type": "string",
+                            "description": "Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage"
+                        },
+                        "depth": {
+                            "type": "integer",
+                            "description": "Tree depth, only for FILE storage",
+                            "minimum": 1,
+                            "default": 2
+                        }
+                    }
+                }
+            }
+        },
+        "process": {
+            "type": "object",
+            "description": "Processing parameters",
+            "required": ["directory"],
+            "properties": {
+                "directory": {
+                    "type": "string",
+                    "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
+                },
+                "parallelization": {
+                    "type": "integer",
+                    "description": "Parallelization level, number of todo lists and agents working at the same time",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "follow_links": {
+                    "type": "boolean",
+                    "description": "Do we follow links (data slabs in others pyramids than the 'from' one)",
+                    "default": false
+                },
+                "slab_limit": {
+                    "type": "integer",
+                    "description": "Minimum slab size (if under, we do not copy)",
+                    "minimum": 0,
+                    "default": 0
+                }
+            }
+        }
+    }
+}

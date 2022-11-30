@@ -64,8 +64,8 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
    * Actions : génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
    * Appel : `pyr2pyr.py --role master --conf conf.json`
 2. Rôle `agent` : 
-   * Actions : lecture de la TODO list depuis le dossier de traitement et recopie des dalles. La fourniture externe d'un fichier du travail fait (option `--done`) permet une reprise sur erreur si la copie s'arrête au milieu.
-   * Appel (un appel par TODO list) : `pyr2pyr.py --role agent --conf conf.json --done /tmp/done.X.list --split X`
+   * Actions : lecture de la TODO list depuis le dossier de traitement et recopie des dalles
+   * Appel (un appel par TODO list) : `pyr2pyr.py --role agent --conf conf.json --split X`
 3. Rôle `finisher` : 
    * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
    * Appel : `pyr2pyr.py --role finisher --conf conf.json`

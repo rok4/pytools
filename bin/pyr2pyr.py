@@ -53,15 +53,6 @@ parser.add_argument(
     required=False
 )
 
-parser.add_argument(
-    '--done',
-    metavar="N",
-    action='store',
-    dest='done',
-    help='Temporary file of done work, only required for the agent role',
-    required=False
-)
-
 args = parser.parse_args()
 
 if args.role != "example" and (args.configuration is None):
@@ -72,9 +63,6 @@ if args.role == "agent" and (args.split is None or args.split < 1):
     print("pyr2pyr: error: argument --split is required for the agent role and have to be a positive integer")
     sys.exit(1)
 
-if args.role == "agent" and (args.done is None):
-    print("pyr2pyr: error: argument --done is required for the agent role")
-    sys.exit(1)
 
 # Tool steps
 
@@ -243,7 +231,7 @@ def agent_work():
     Inputs:
     - Configuration
     - Todo list
-    - The done list : if exists, work does not start from the beginning, but after the last copied slab. This file contains only the destination path of the already processed slabs
+    - The last done slab name : if exists, work does not start from the beginning, but after the last copied slab. This file contains only the destination path of the last processed slab
 
     Steps:
     - Write the output pyramid's descriptor to the final location
@@ -259,57 +247,45 @@ def agent_work():
     except Exception as e:
         raise Exception(f"Cannot copy todo lists to final location: {e}")
 
+    last_done_slab = None
+    last_done_fo = os.path.join(config["process"]["directory"], f"slab.{args.split}.last")
+
     try:
 
-        last_done = None
+        if Storage.exists(last_done_fo):
+            last_done_slab = Storage.get_data_str(last_done_fo)
+            logging.debug(f"The last done slab file exists, last slab to have been copied is {last_done_slab}")
 
-        if os.path.exists(args.done):
-            # Le fichier local du travail fait existe déjà, on en récupère la dernière ligne
-            with open(args.done) as f:
-                line = ""
-                for line in f:
-                    pass
-                last_line = line
-            
-            last_done = last_line.rstrip()
-            if last_done is not None and last_done != "":
-                logging.debug(f"The done file already exists, last slab to have been copied is {last_done}")
-            else:
-                # Dans le cas où le fichier avait été créé mais vide
-                last_done = None
+        for line in todo_list_obj:
+            line = line.rstrip()
+            parts = line.split(" ")
 
-        elif os.path.dirname(args.done) != "":
-            os.makedirs(os.path.dirname(args.done), exist_ok=True)
+            if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
+                raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")                   
 
-        with open(args.done, "a") as done_list_obj:
-            for line in todo_list_obj:
-                line = line.rstrip()
-                parts = line.split(" ")
+            if last_done_slab is not None:
+                if parts[2] == last_done_slab:
+                    # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
+                    logging.debug(f"Last copied slab reached, copies can start again")
+                    last_done_slab = None
 
-                if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
-                    raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")                   
+                next
 
-                if last_done is not None:
-                    if parts[2] == last_done:
-                        # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
-                        logging.debug(f"Last copied slab reached, copies can start again")
-                        last_done = None
+            slab_md5 = None
+            if len(parts) == 4:
+                slab_md5 = parts[3]
 
-                    next
-
-                slab_md5 = None
-                if len(parts) == 4:
-                    slab_md5 = parts[3]
-
-                Storage.copy(parts[1], parts[2], slab_md5)
-                done_list_obj.write(f"{parts[2]}\n")
+            Storage.copy(parts[1], parts[2], slab_md5)
+            last_done_slab = parts[2]
         
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait
         todo_list_obj.close()
         Storage.remove(f"file://{todo_list_obj.name}")
-        Storage.remove(f"file://{args.done}")
+        Storage.remove(last_done_fo)
 
     except Exception as e:
+        if last_done_slab is not None:
+            Storage.put_data_str(last_done_slab, last_done_fo)
         raise Exception(f"Cannot process the todo list: {e}")
 
 

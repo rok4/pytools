@@ -14,6 +14,6 @@ setup(
     description='Python tools for ROK4 project',
     author='Géoportail<tout_rdev@ign.fr>',
     url='https://github.com/rok4/pytools',
-    install_requires=['rok4lib', 'jsonschema'],
+    install_requires=['rok4lib >= 1.1.0', 'jsonschema'],
     setup_requires=['wheel']
 )

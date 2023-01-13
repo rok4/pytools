@@ -172,6 +172,9 @@ def master_work():
 
     # Parcours des dalles de la pyramide en entrée et constitution des todo lists
     with open(from_list_obj.name, "r") as listin:
+
+        from_s3_cluster = from_pyramid.storage_s3_cluster
+
         for line in listin:
             line = line.rstrip()
             logging.debug(line)
@@ -182,7 +185,13 @@ def master_work():
 
             if header:
                 root_id, root_path = line.split("=", 1)
-                roots[root_id] = root_path
+                if from_s3_cluster is None:
+                    roots[root_id] = root_path
+                else:
+                    # On a un nom de cluster S3, on l'ajoute au nom du bucket dans les racines
+                    root_bucket, root_path = root_path.split("/", 1)
+                    roots[root_id] = f"{root_bucket}@{from_s3_cluster}/{root_path}"
+
                 continue
 
             # On traite une dalle
@@ -330,6 +339,11 @@ def finisher_work():
             # Écriture de l'en-tête du fichier liste : une seule racine, celle de la pyramide en sortie
             to_root = os.path.join(to_pyramid.storage_root, to_pyramid.name)
             list_file_obj.write(f"0={to_root}\n#\n")
+
+            if to_pyramid.storage_s3_cluster is not None:
+                # Les chemins de destination contiendront l'hôte du cluster S3 utilisé,
+                # Il faut donc l'inclure dans la racine à supprimer des chemins vers les dalles
+                to_root = os.path.join(f"{to_pyramid.storage_root}@{to_pyramid.storage_s3_cluster}", to_pyramid.name)
 
             for i in range(0, config["process"]["parallelization"]):
 

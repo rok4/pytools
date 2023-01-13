@@ -2,20 +2,15 @@
 
 ## Summary
 
-Cette release contient le premier outil de la suite Python PYR2PYR. Il utilise la [librairie Python du projet](https://github.com/rok4/core-python).
+PYR2PYR gère les copies inter cluster S3
 
 ## Changelog
 
 ### [Changed]
 
 * Outil PYR2PYR :
-  * Au lancement de l'agent, on ne fournit plus le fichier où écrire le travail fait. En cas d'erreur attrapée, un fichier/objet est poussé à côté de la todo list contenant le nom de la dernière dalle traitée. L'existence de ce fichier/objet est testée avant de commencer le travail
+  * Les pyramides source et destination peuvent être sur des clusters S3 différents. Ils sont précisés lors de la recopie des dalles. Pour préciser le cluster dans le chemin vers le descripteur de la pyramide source (ou l'emplacement de la pyramide destination), il suffit de suffixer le nom du bucket avec `@{hôte du cluster}`.
 
-
-### [Fixed]
-
-* Outil PYR2PYR
-  * Correction de la lecture du fichier liste temporaire de la pyramide source
 
 <!-- 
 ### [Added]

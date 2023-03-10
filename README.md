@@ -1,79 +1,54 @@
-# Outils Python
+# Outils ROK4 Python
+
+![ROK4 Logo](https://rok4.github.io/assets/images/rok4.png)
 
 Ce projet contient des outils de gestion des pyramides de données, écrits en Python.
 
-- [Compilations](#compilations)
-    - [Outils](#outils)
-    - [Documentation](#documentation)
-- [Installation](#installation)
-- [PYR2PYR](#pyr2pyr)
-    - [Fonctionnement](#fonctionnement)
-    - [Configuration](#configuration)
-- [MAKE-LAYER](#make-layer)
+- [Installer les outils](#installer-les-outils)
+- [Utiliser les outils](#utiliser-les-outils)
+    - [PYR2PYR](#pyr2pyr)
+        - [Fonctionnement](#fonctionnement)
+        - [Configuration](#configuration)
+    - [MAKE-LAYER](#make-layer)
+- [Compiler la suite d'outils](#compiler-la-suite-doutils)
+- [Publier la suite d'outils sur Pypi](#publier-la-suite-doutils-sur-pypi)
 
+## Installer les outils
 
-## Compilations
+Installations système requises :
 
-### Outils
+* debian : `apt install python3-rados python3-gdal`
 
-`VERSION=1.0.0 python setup.py bdist_wheel`
+Depuis [PyPI](https://pypi.org/project/rok4-tools/) : `pip install rok4-tools`
+Depuis [GitHub](https://github.com/rok4/pytools/releases/) : `pip install https://github.com/rok4/pytools/releases/download/x.y.z/rok4_tools-x.y.z-py3-none-any.whl`
 
-### Documentation
+L'environnement d'exécution doit avoir accès aux librairies système. Dans le cas d'une utilisation au sein d'un environnement python, précisez bien à la création `python3 -m venv --system-site-packages .venv`.
 
-```sh
-pip install json-schema-for-humans pdoc3 jsonschema2md
-mkdir html
-generate-schema-doc bin/*.schema.json ./html/
-```
+## Utiliser les outils
 
-## Installation
-
-Récupération des artefacts sur GitHub :
-
-* [Fichier Wheel des librairies](https://github.com/rok4/core-python/releases)
-* [Fichier Wheel des outils](https://github.com/rok4/pytools/releases)
-
-Installation dans un environnement :
-
-```sh
-sudo apt install python3-rados
-python -m venv --system-site-packages venv
-source venv/bin/activate
-pip install rok4lib-<VERSION>-py3-none-any.whl
-pip install rok4tools-<VERSION>-py3-none-any.whl
-```
-
-Installation système :
-
-```sh
-sudo apt install python3-rados
-sudo pip install rok4lib-<VERSION>-py3-none-any.whl
-sudo pip install rok4tools-<VERSION>-py3-none-any.whl
-```
-
-## PYR2PYR
+### PYR2PYR
 
 PYR2PYR est un outil de copie d'une pyramide d'un stockage à un autre. Il est possible de filtrer les dalles transférée en précisant une taille limite sous laquelle les données ne sont pas recopiées. La copie des dalles est parallélisable. Si des signatures MD5 sont présente dans le fichier liste, elles sont contrôlées après recopie.
 
-Un exemple de configuration est affichable avec la commande `pyr2pyr.py --role example` et l'appel `pyr2pyr.py --role check --conf conf.json` permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : `s3://bucket/configuration.json`)
+Un exemple de configuration est affichable avec la commande `pyr2pyr --role example` et l'appel `pyr2pyr --role check --conf conf.json` permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : `s3://bucket/configuration.json`)
 
-### Fonctionnement
+#### Fonctionnement
 
 Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
 
 1. Rôle `master`
     * Actions : génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
-    * Appel : `pyr2pyr.py --role master --conf conf.json`
+    * Appel : `pyr2pyr --role master --conf conf.json`
 2. Rôle `agent` : 
     * Actions : lecture de la TODO list depuis le dossier de traitement et recopie des dalles
-    * Appel (un appel par TODO list) : `pyr2pyr.py --role agent --conf conf.json --split X`
+    * Appel (un appel par TODO list) : `pyr2pyr --role agent --conf conf.json --split X`
 3. Rôle `finisher` : 
     * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
-    * Appel : `pyr2pyr.py --role finisher --conf conf.json`
+    * Appel : `pyr2pyr --role finisher --conf conf.json`
 
-![Enchaînement PYR2PYR](./docs/pyr2pyr.png)
+![Enchaînement PYR2PYR](./docs/images/pyr2pyr.png)
 
-### Configuration
+#### Configuration
 
 Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md bin/pyr2pyr.schema.json /dev/stdout`)
 
@@ -96,8 +71,31 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
     - **`slab_limit`** *(integer)*: Minimum slab size (if under, we do not copy). Minimum: `0`. Default: `0`.
 
 
-## MAKE-LAYER
+### MAKE-LAYER
 
 MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
 
 Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
+
+
+## Compiler la suite d'outils
+
+```sh
+apt install python3-venv
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade build bump2version
+bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4_tools/__init__.py
+
+# Build artefacts
+python3 -m build
+```
+
+## Publier la suite d'outils sur Pypi
+
+Configurer le fichier `$HOME/.pypirc` avec les accès à votre compte PyPI.
+
+```sh
+python3 -m pip install --upgrade twine
+python3 -m twine upload --repository pypi dist/rok4_tools-x.y.z-py3-none-any.whl dist/rok4_tools-x.y.z.tar.gz
+```

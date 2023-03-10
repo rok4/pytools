@@ -1,16 +1,21 @@
-# Outils ROK4 Python
-
 ## Summary
 
-Cette release contient le premier outil de la suite Python PYR2PYR. Il utilise la [librairie Python du projet](https://github.com/rok4/core-python).
+Ajout de l'outil make-layer et suivi des recommandations PyPA pour la gestion du projet.
 
 ## Changelog
 
 ### [Added]
 
-* Outil PYR2PYR de copie de pyramide : copie d'une pyramide d'un stockage à une autre. Contrôle les signatures MD5 si présente dans le fichier liste. Fonctionne en plusieurs modes :
-  * 3 pour la recopie : master, agent et finisher
-  * 2 pour l'aide : example et check
+* Outil MAKE-LAYER : génère un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
+* Ajout de la publication PyPI dans la CI GitHub 
+
+### [Changed]
+
+* Renommage pour plus de cohérence avec les pratiques :
+    * Le module rok4 est renommé : rok4lib -> rok4
+    * Le module d'outil est renommé : rok4tools -> rok4_tools. Le package a le nom rok4-tools
+    * Le script make-layer.py -> make_layer.py
+* Passage de la configuration du projet dans le fichier `pyproject.toml`
 
 <!-- 
 ### [Added]

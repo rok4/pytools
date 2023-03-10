@@ -14,6 +14,7 @@ import itertools
 
 from rok4.Pyramid import Pyramid
 from rok4 import Storage
+from rok4_tools import __version__
 
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
@@ -23,6 +24,12 @@ parser = argparse.ArgumentParser(
     prog = 'pyr2pyr',
     description = "Tool to split the work to do for a pyramid copy and make slabs' copy",
     epilog = ''
+)
+
+parser.add_argument(
+    '--version',
+    action='version',
+    version='%(prog)s ' + __version__
 )
 
 parser.add_argument(
@@ -53,15 +60,6 @@ parser.add_argument(
     required=False
 )
 
-parser.add_argument(
-    '--done',
-    metavar="N",
-    action='store',
-    dest='done',
-    help='Temporary file of done work, only required for the agent role',
-    required=False
-)
-
 args = parser.parse_args()
 
 if args.role != "example" and (args.configuration is None):
@@ -72,9 +70,6 @@ if args.role == "agent" and (args.split is None or args.split < 1):
     print("pyr2pyr: error: argument --split is required for the agent role and have to be a positive integer")
     sys.exit(1)
 
-if args.role == "agent" and (args.done is None):
-    print("pyr2pyr: error: argument --done is required for the agent role")
-    sys.exit(1)
 
 # Tool steps
 
@@ -170,59 +165,70 @@ def master_work():
 
     round_robin = itertools.cycle(file_objects)
 
-    # Parcours des dalles de la pyramide en entrée et constitution des todo lists
     
     # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
     try:
         from_list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
         Storage.copy(from_pyramid.list, f"file://{from_list_obj.name}")
+        from_list_obj.close()
     except Exception as e:
         raise Exception(f"Cannot copy source pyramid's slabs list to temporary location: {e}")
 
     header = True
     roots = dict()
 
-    for line in from_list_obj:
-        line = line.rstrip()
-        if line == "#":
-            header = False
-            continue
+    # Parcours des dalles de la pyramide en entrée et constitution des todo lists
+    with open(from_list_obj.name, "r") as listin:
 
-        if header:
-            root_id, root_path = line.split("=", 1)
-            roots[root_id] = root_path
-            continue
+        from_s3_cluster = from_pyramid.storage_s3_cluster
 
-        # On traite une dalle
+        for line in listin:
+            line = line.rstrip()
+            logging.debug(line)
+            
+            if line == "#":
+                header = False
+                continue
 
-        parts = line.split(" ", 1)
-        slab_path = parts[0]
-        slab_md5 = None
-        if len(parts) == 2:
-            slab_md5 = parts[1]
+            if header:
+                root_id, root_path = line.split("=", 1)
+                if from_s3_cluster is None:
+                    roots[root_id] = root_path
+                else:
+                    # On a un nom de cluster S3, on l'ajoute au nom du bucket dans les racines
+                    root_bucket, root_path = root_path.split("/", 1)
+                    roots[root_id] = f"{root_bucket}@{from_s3_cluster}/{root_path}"
 
-        root_id, slab_path = slab_path.split("/", 1)
+                continue
 
-        if root_id != "0" and not config["process"]["follow_links"]:
-            # On ne veut pas traiter les dalles symboliques, et c'en est une
-            continue
+            # On traite une dalle
 
-        from_slab_path = Storage.get_path_from_infos(from_pyramid.storage_type, roots[root_id], slab_path)
+            parts = line.split(" ", 1)
+            slab_path = parts[0]
+            slab_md5 = None
+            if len(parts) == 2:
+                slab_md5 = parts[1]
 
-        if config["process"]["slab_limit"] != 0 and Storage.get_size(from_slab_path) < config["process"]["slab_limit"]:
-            logging.debug(f"Slab {from_slab_path} too small, skip it")
-            continue
-        
-        slab_type, level, column, row = from_pyramid.get_infos_from_slab_path(from_slab_path)
+            root_id, slab_path = slab_path.split("/", 1)
 
-        to_slab_path = to_pyramid.get_slab_path_from_infos(slab_type, level, column, row)
+            if root_id != "0" and not config["process"]["follow_links"]:
+                # On ne veut pas traiter les dalles symboliques, et c'en est une
+                continue
 
-        if slab_md5 is None:
-            next(round_robin).write(f"cp {from_slab_path} {to_slab_path}\n")
-        else:
-            next(round_robin).write(f"cp {from_slab_path} {to_slab_path} {slab_md5}\n")
+            from_slab_path = Storage.get_path_from_infos(from_pyramid.storage_type, roots[root_id], slab_path)
 
-    from_list_obj.close()
+            if config["process"]["slab_limit"] != 0 and Storage.get_size(from_slab_path) < config["process"]["slab_limit"]:
+                logging.debug(f"Slab {from_slab_path} too small, skip it")
+                continue
+            
+            slab_type, level, column, row = from_pyramid.get_infos_from_slab_path(from_slab_path)
+
+            to_slab_path = to_pyramid.get_slab_path_from_infos(slab_type, level, column, row)
+
+            if slab_md5 is None:
+                next(round_robin).write(f"cp {from_slab_path} {to_slab_path}\n")
+            else:
+                next(round_robin).write(f"cp {from_slab_path} {to_slab_path} {slab_md5}\n")
     
     # Copie des listes de recopies à l'emplacement partagé (peut être du stockage objet)
     try:
@@ -243,7 +249,7 @@ def agent_work():
     Inputs:
     - Configuration
     - Todo list
-    - The done list : if exists, work does not start from the beginning, but after the last copied slab. This file contains only the destination path of the already processed slabs
+    - The last done slab name : if exists, work does not start from the beginning, but after the last copied slab. This file contains only the destination path of the last processed slab
 
     Steps:
     - Write the output pyramid's descriptor to the final location
@@ -259,57 +265,45 @@ def agent_work():
     except Exception as e:
         raise Exception(f"Cannot copy todo lists to final location: {e}")
 
+    last_done_slab = None
+    last_done_fo = os.path.join(config["process"]["directory"], f"slab.{args.split}.last")
+
     try:
 
-        last_done = None
+        if Storage.exists(last_done_fo):
+            last_done_slab = Storage.get_data_str(last_done_fo)
+            logging.debug(f"The last done slab file exists, last slab to have been copied is {last_done_slab}")
 
-        if os.path.exists(args.done):
-            # Le fichier local du travail fait existe déjà, on en récupère la dernière ligne
-            with open(args.done) as f:
-                line = ""
-                for line in f:
-                    pass
-                last_line = line
-            
-            last_done = last_line.rstrip()
-            if last_done is not None and last_done != "":
-                logging.debug(f"The done file already exists, last slab to have been copied is {last_done}")
-            else:
-                # Dans le cas où le fichier avait été créé mais vide
-                last_done = None
+        for line in todo_list_obj:
+            line = line.rstrip()
+            parts = line.split(" ")
 
-        elif os.path.dirname(args.done) != "":
-            os.makedirs(os.path.dirname(args.done), exist_ok=True)
+            if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
+                raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")                   
 
-        with open(args.done, "a") as done_list_obj:
-            for line in todo_list_obj:
-                line = line.rstrip()
-                parts = line.split(" ")
+            if last_done_slab is not None:
+                if parts[2] == last_done_slab:
+                    # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
+                    logging.debug(f"Last copied slab reached, copies can start again")
+                    last_done_slab = None
 
-                if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
-                    raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")                   
+                next
 
-                if last_done is not None:
-                    if parts[2] == last_done:
-                        # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
-                        logging.debug(f"Last copied slab reached, copies can start again")
-                        last_done = None
+            slab_md5 = None
+            if len(parts) == 4:
+                slab_md5 = parts[3]
 
-                    next
-
-                slab_md5 = None
-                if len(parts) == 4:
-                    slab_md5 = parts[3]
-
-                Storage.copy(parts[1], parts[2], slab_md5)
-                done_list_obj.write(f"{parts[2]}\n")
+            Storage.copy(parts[1], parts[2], slab_md5)
+            last_done_slab = parts[2]
         
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait
         todo_list_obj.close()
         Storage.remove(f"file://{todo_list_obj.name}")
-        Storage.remove(f"file://{args.done}")
+        Storage.remove(last_done_fo)
 
     except Exception as e:
+        if last_done_slab is not None:
+            Storage.put_data_str(last_done_slab, last_done_fo)
         raise Exception(f"Cannot process the todo list: {e}")
 
 
@@ -353,6 +347,11 @@ def finisher_work():
             to_root = os.path.join(to_pyramid.storage_root, to_pyramid.name)
             list_file_obj.write(f"0={to_root}\n#\n")
 
+            if to_pyramid.storage_s3_cluster is not None:
+                # Les chemins de destination contiendront l'hôte du cluster S3 utilisé,
+                # Il faut donc l'inclure dans la racine à supprimer des chemins vers les dalles
+                to_root = os.path.join(f"{to_pyramid.storage_root}@{to_pyramid.storage_s3_cluster}", to_pyramid.name)
+
             for i in range(0, config["process"]["parallelization"]):
 
                 todo_list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
@@ -379,7 +378,7 @@ def finisher_work():
     except Exception as e:
         raise Exception(f"Cannot concatenate splits' done lists and write the final output pyramid's list to the final location: {e}")
 
-if __name__ == "__main__": 
+def main():
 
     if args.role == "example":
         # On veut juste afficher la configuration en exemple
@@ -425,3 +424,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     sys.exit(0)
+
+if __name__ == "__main__": 
+    main()

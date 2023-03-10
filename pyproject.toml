@@ -1,0 +1,56 @@
+[project]
+
+name = "rok4-tools"
+version = "0.0.0"
+
+description = "Python tools for ROK4 project"
+readme = "README.pypi.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE.txt"}
+
+keywords = ["ROK4", "tools", "data pyramids"]
+
+authors = [
+  {name = "Géoportail Developer", email = "tout_rdev@ign.fr" }
+]
+
+classifiers = [
+
+  "Development Status :: 3 - Alpha",
+
+  "Topic :: Software Development :: Build Tools",
+
+  "License :: CeCILL-C Free Software License Agreement (CECILL-C)",
+
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+dependencies = [
+  "jsonschema",
+  "rok4 >= 1.4.4"
+]
+
+[project.urls]
+"Homepage" = "https://rok4.github.io/documentation/pytools"
+"Bug Reports" = "https://github.com/rok4/pytools/issues"
+"Changelog" = "https://github.com/rok4/pytools/releases"
+"Source" = "https://github.com/rok4/pytools"
+
+[project.scripts]
+pyr2pyr = "rok4_tools.pyr2pyr:main"
+make-layer = "rok4_tools.make_layer:main"
+
+[tool.setuptools.package-data]
+rok4_tools = ["*.json"]
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -14,6 +14,7 @@ import itertools
 
 from rok4.Pyramid import Pyramid
 from rok4 import Storage
+from rok4_tools import __version__
 
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
@@ -23,6 +24,12 @@ parser = argparse.ArgumentParser(
     prog = 'pyr2pyr',
     description = "Tool to split the work to do for a pyramid copy and make slabs' copy",
     epilog = ''
+)
+
+parser.add_argument(
+    '--version',
+    action='version',
+    version='%(prog)s ' + __version__
 )
 
 parser.add_argument(
@@ -371,7 +378,7 @@ def finisher_work():
     except Exception as e:
         raise Exception(f"Cannot concatenate splits' done lists and write the final output pyramid's list to the final location: {e}")
 
-if __name__ == "__main__": 
+def main():
 
     if args.role == "example":
         # On veut juste afficher la configuration en exemple
@@ -417,3 +424,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     sys.exit(0)
+
+if __name__ == "__main__": 
+    main()

@@ -83,7 +83,7 @@ parser.add_argument(
     action='store',
     dest='directory',
     metavar="s3://layers_bucket",
-    help="Directory (file or object) where to write layer's descriptor. Print in standard output if ot provided",
+    help="Directory (file or object) where to write layer's descriptor. Print in standard output if not provided",
     required=False
 )
 
@@ -118,14 +118,15 @@ def work():
 
     layer.write_descriptor(args.directory)
 
-if __name__ == "__main__":
-    # try:
-    #     work()
+def main():
+    try:
+        work()
 
-    # except Exception as e:
-    #     logging.error(e)
-    #     sys.exit(1)
-
-    work()
+    except Exception as e:
+        logging.error(e)
+        sys.exit(1)
 
     sys.exit(0)
+
+if __name__ == "__main__": 
+    main()

@@ -32,11 +32,12 @@ classifiers = [
 
 dependencies = [
   "jsonschema",
-  "rok4 >= 1.4.4"
+  "numpy >= 1.24.2",
+  "rok4 >= 1.7.0"
 ]
 
 [project.urls]
-"Homepage" = "https://rok4.github.io/documentation/pytools"
+"Homepage" = "https://rok4.github.io/pytools"
 "Bug Reports" = "https://github.com/rok4/pytools/issues"
 "Changelog" = "https://github.com/rok4/pytools/releases"
 "Source" = "https://github.com/rok4/pytools"
@@ -44,6 +45,7 @@ dependencies = [
 [project.scripts]
 pyr2pyr = "rok4_tools.pyr2pyr:main"
 make-layer = "rok4_tools.make_layer:main"
+pyrolyse = "rok4_tools.pyrolyse:main"
 
 [tool.setuptools.package-data]
 rok4_tools = ["*.json"]

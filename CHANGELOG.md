@@ -1,16 +1,12 @@
 ## Summary
 
-Ajout de l'option version à l'outil make-layer
+Ajout de l'outil pyrolyse
 
 ## Changelog
 
 ### [Added]
 
-* Outil MAKE-LAYER : option `--version` ajoutée
-
-### [Changed]
-
-* Documentation : la latest est gérée par une redirection
+* Outil PYROLYSE : calcule des statistiques (nombre de dalles et de tuiles, leur taille) sur une pyramide. Permet également d'avoir des statistiques sur les temps de lecture de la donnée.
 
 <!-- 
 ### [Added]

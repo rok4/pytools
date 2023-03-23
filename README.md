@@ -7,9 +7,8 @@ Ce projet contient des outils de gestion des pyramides de données, écrits en P
 - [Installer les outils](#installer-les-outils)
 - [Utiliser les outils](#utiliser-les-outils)
     - [PYR2PYR](#pyr2pyr)
-        - [Fonctionnement](#fonctionnement)
-        - [Configuration](#configuration)
     - [MAKE-LAYER](#make-layer)
+    - [PYROLYSE](#pyrolyse)
 - [Compiler la suite d'outils](#compiler-la-suite-doutils)
 - [Publier la suite d'outils sur Pypi](#publier-la-suite-doutils-sur-pypi)
 
@@ -78,6 +77,14 @@ MAKE-LAYER est un outil générant un descripteur de couche compatible avec le s
 
 Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
 
+
+### PYROLYSE
+
+PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
+
+Concernant les tailles et mes temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
+
+Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--deciles] [--ratio N]`
 
 ## Compiler la suite d'outils
 

@@ -66,4 +66,13 @@ MAKE-LAYER generate a layer's descriptor, [ROK4 server](https://github.com/rok4/
 
 #### Usage
 
-`make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
+`make-layer [-h] [--version] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
+
+
+### PYROLYSE
+
+PYROLYSE process statistics about a pyramid : slab count, slab and tiles sizes, read times...
+
+#### Usage
+
+`pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--deciles] [--ratio N]`

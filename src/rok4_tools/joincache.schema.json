@@ -1,0 +1,138 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "JOINCACHE pregeneration configuration",
+    "type": "object",
+    "required": [
+        "datasources",
+        "pyramid",
+        "process"
+    ],
+    "properties": {
+        "logger": {
+            "type": "object",
+            "description": "Paramètres du logger",
+            "properties": {
+                "layout": {
+                    "type": "string",
+                    "description": "Format du log, selon la syntaxe Log4perl",
+                    "default": "%5p : %m (%M) %n"
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni"
+                },
+                "level": {
+                    "type": "string",
+                    "description": "Niveau de log",
+                    "enum": [
+                        "DEBUG",
+                        "INFO",
+                        "WARN",
+                        "ERROR",
+                        "ALWAYS"
+                    ],
+                    "default": "WARN"
+                }
+            }
+        },
+        "datasources": {
+            "type": "array",
+            "description": "Pyramides sources",
+            "items": {
+                "type": "object",
+                "required": ["source", "bottom", "top"],
+                "properties": {
+                    "bottom": {
+                        "type": "string",
+                        "description": "Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée"
+                    },
+                    "top": {
+                        "type": "string",
+                        "description": "Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée"
+                    },
+                    "source": {
+                        "type": "object",
+                        "description": "Base PostgreSQL comme source de données",
+                        "required": ["type", "descriptors"],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "Type de source",
+                                "enum": ["PYRAMIDS"]
+                            },
+                            "descriptors": {
+                                "type": "array",
+                                "description": "Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...)",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "pyramid": {
+            "type": "object",
+            "description": "Génération d'une nouvelle pyramide comme produit de fusion",
+            "required": ["name", "storage"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Nom de la nouvelle pyramide fusionnée"
+                },
+                "storage": {
+                    "type": "object",
+                    "required": ["type", "root"],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Storage type",
+                            "enum": [
+                                "FILE", "S3", "CEPH"
+                            ]
+                        },
+                        "root": {
+                            "type": "string",
+                            "description": "Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage"
+                        },
+                        "depth": {
+                            "type": "integer",
+                            "description": "Tree depth, only for FILE storage",
+                            "minimum": 1,
+                            "default": 2
+                        }
+                    }
+                },
+                "mask": {
+                    "type": "boolean",
+                    "description": "Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements.",
+                    "default": false
+                }
+            }
+        }
+    },
+    "process": {
+        "type": "object",
+        "description": "Paramètres de traitement",
+        "required": ["directories"],
+        "properties": {
+          "directory": {
+              "type": "string",
+              "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
+          },
+            "parallelization": {
+                "type": "integer",
+                "description": "Niveau de parallélisation, défini le nombre de scripts de génération exécutables en parallèle",
+                "minimum": 1,
+                "default": 1
+            },
+            "mask": {
+                "type": "boolean",
+                "description": "Doit-on utiliser les masques de données dans les calculs",
+                "default": false
+            }
+        }
+    }
+}

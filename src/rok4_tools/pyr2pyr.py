@@ -63,7 +63,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 if args.role != "example" and (args.configuration is None):
-    print("pyr2pyr: error: argument --conf is required for all roles execept 'example'")
+    print("pyr2pyr: error: argument --conf is required for all roles except 'example'")
     sys.exit(1)
 
 if args.role == "agent" and (args.split is None or args.split < 1):
@@ -152,7 +152,7 @@ def master_work():
         to_pyramid = Pyramid.from_other(from_pyramid, config["to"]["name"], config["to"]["storage"])
     except Exception as e:
         raise Exception(f"Cannot create the destination pyramid descriptor from the source one: {e}")
-        
+
     # Ouverture des flux vers les listes de recopies à faire
     file_objects = []
     try:
@@ -165,7 +165,7 @@ def master_work():
 
     round_robin = itertools.cycle(file_objects)
 
-    
+
     # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
     try:
         from_list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
@@ -185,7 +185,7 @@ def master_work():
         for line in listin:
             line = line.rstrip()
             logging.debug(line)
-            
+
             if line == "#":
                 header = False
                 continue
@@ -220,7 +220,7 @@ def master_work():
             if config["process"]["slab_limit"] != 0 and Storage.get_size(from_slab_path) < config["process"]["slab_limit"]:
                 logging.debug(f"Slab {from_slab_path} too small, skip it")
                 continue
-            
+
             slab_type, level, column, row = from_pyramid.get_infos_from_slab_path(from_slab_path)
 
             to_slab_path = to_pyramid.get_slab_path_from_infos(slab_type, level, column, row)
@@ -229,7 +229,7 @@ def master_work():
                 next(round_robin).write(f"cp {from_slab_path} {to_slab_path}\n")
             else:
                 next(round_robin).write(f"cp {from_slab_path} {to_slab_path} {slab_md5}\n")
-    
+
     # Copie des listes de recopies à l'emplacement partagé (peut être du stockage objet)
     try:
         for i in range(0, config["process"]["parallelization"]):
@@ -237,7 +237,7 @@ def master_work():
             tmp.close()
             Storage.copy(f"file://{tmp.name}", os.path.join(config["process"]["directory"], f"todo.{i+1}.list"))
             Storage.remove(f"file://{tmp.name}")
-        
+
         Storage.remove(f"file://{from_list_obj.name}")
 
     except Exception as e:
@@ -261,7 +261,7 @@ def agent_work():
     try:
         todo_list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
         Storage.copy(os.path.join(config["process"]["directory"], f"todo.{args.split}.list"), f"file://{todo_list_obj.name}")
-        
+
     except Exception as e:
         raise Exception(f"Cannot copy todo lists to final location: {e}")
 
@@ -279,7 +279,7 @@ def agent_work():
             parts = line.split(" ")
 
             if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
-                raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")                   
+                raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")
 
             if last_done_slab is not None:
                 if parts[2] == last_done_slab:
@@ -295,7 +295,7 @@ def agent_work():
 
             Storage.copy(parts[1], parts[2], slab_md5)
             last_done_slab = parts[2]
-        
+
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait
         todo_list_obj.close()
         Storage.remove(f"file://{todo_list_obj.name}")
@@ -336,7 +336,7 @@ def finisher_work():
         to_pyramid.write_descriptor()
     except Exception as e:
         raise Exception(f"Cannot write output pyramid's descriptor to final location: {e}")
-    
+
     try:
 
         with tempfile.NamedTemporaryFile(mode='w', delete=False) as list_file_obj:
@@ -362,7 +362,7 @@ def finisher_work():
                     parts = line.split(" ")
 
                     if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
-                        raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")  
+                        raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")
 
                     storage_type, path, tray, base_name = Storage.get_infos_from_path(parts[2])
                     path = path.replace(to_root, "0")
@@ -402,7 +402,7 @@ def main():
     except Exception as e:
         logging.error(e)
         sys.exit(1)
-    
+
     if args.role == "check":
         # On voulait juste valider le fichier de configuration, c'est chose faite
         # Si on est là c'est que tout est bon
@@ -411,7 +411,7 @@ def main():
 
     # Work
     try:
-        
+
         if args.role == "master":
             master_work()
         elif args.role == "agent":
@@ -425,5 +425,5 @@ def main():
 
     sys.exit(0)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()

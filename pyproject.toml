@@ -44,6 +44,7 @@ dependencies = [
 [project.scripts]
 pyr2pyr = "rok4_tools.pyr2pyr:main"
 make-layer = "rok4_tools.make_layer:main"
+joincache = "rok4_tools.joincache:main"
 
 [tool.setuptools.package-data]
 rok4_tools = ["*.json"]

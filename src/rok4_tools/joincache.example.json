@@ -1,0 +1,41 @@
+{
+    "logger": {
+        "level": "WARN"
+    },
+    "datasources": [
+        {
+            "top": "0",
+            "bottom": "10",
+            "source": {
+                "type": "PYRAMIDS",
+                "descriptors": [
+                    "ceph:///pool/pyramids/NORD.json",
+                    "ceph:///pool/pyramids/SUD.json"
+                ]
+            }
+        },
+				{
+						"top": "11",
+						"bottom": "18",
+						"source": {
+								"type": "PYRAMIDS",
+								"descriptors": [
+										"ceph:///pool/pyramids/EST.json",
+										"ceph:///pool/pyramids/OUEST.json"
+								]
+						}
+				}
+    ],
+    "pyramid": {
+      	"name": "ENTIER",
+				"storage": {
+					"type": "S3",
+					"root": "pyramids"
+				}
+    },
+    "process": {
+        "directory": "s3://bucket_temp/joincache",
+        "parallelization": 1,
+        "mask": true
+    }
+}

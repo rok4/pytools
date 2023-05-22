@@ -71,19 +71,19 @@ jobs:
           bump2version --current-version 0.0.0 --new-version ${{ github.ref_name }} patch pyproject.toml src/rok4_tools/__init__.py
 
       - name: Build package
-        if: "always()&&(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           python3 -m build
 
       - name: Copy documentation
-        if: "always()&&(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           cp README.md CHANGELOG.md dist/
           cp -r docs/images dist/
 
       - name: Upload packages
-        if: "always()&&(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         uses: actions/upload-artifact@v3
         with:
           name: dist-py3
@@ -172,13 +172,14 @@ jobs:
           echo "# Versions" >docs/versions.md
           echo "" >>docs/versions.md
           for v in `ls -t docs/versions`; do sed "s#__version__#$v#" templates/versions.template.md >>docs/versions.md; done
+          sed "s#__version__#${{ github.ref_name }}#" templates/latest.template.html >docs/versions/latest/index.html
           rm -r artifact
 
       - name: Publish on gh-pages branch
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add -v docs/versions/${{ github.ref_name }}/ docs/index.md docs/versions.md
+          git add -v docs/versions/${{ github.ref_name }}/ docs/versions/latest/ docs/index.md docs/versions.md
           git commit -m "Add documentation for version ${{ github.ref_name }}"
           git push
 

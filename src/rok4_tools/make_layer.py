@@ -9,6 +9,8 @@ import os
 from rok4.Pyramid import Pyramid
 from rok4.Layer import Layer
 
+from rok4_tools import __version__
+
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
 
@@ -17,6 +19,12 @@ parser = argparse.ArgumentParser(
     prog = 'make-layer',
     description = "Tool to generate layer descriptor from pyramids' descriptor",
     epilog = ''
+)
+
+parser.add_argument(
+    '--version',
+    action='version',
+    version='%(prog)s ' + __version__
 )
 
 parser.add_argument(
@@ -45,7 +53,7 @@ parser.add_argument(
     action='extend',
     nargs='+',
     type=str,
-    default='normal',
+    default=["normal"],
     dest='styles',
     help='Styles ID available for the layer (no controls, ID are added as provided)',
     required=False

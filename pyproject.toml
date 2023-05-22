@@ -47,7 +47,7 @@ make-layer = "rok4_tools.make_layer:main"
 joincache = "rok4_tools.joincache:main"
 
 [tool.setuptools.package-data]
-rok4_tools = ["*.json"]
+rok4_tools = ["**/*.json"]
 
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]

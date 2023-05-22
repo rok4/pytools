@@ -1,0 +1,81 @@
+from typing import Dict, List, Tuple, Union
+import tempfile
+import logging
+import os
+
+from rok4.Pyramid import Pyramid
+from rok4 import Storage
+
+def work(config: Dict):
+    """Finisher steps : finalize the pyramid's transfer
+
+    Inputs:
+    - Configuration
+    - Todo lists
+
+    Steps:
+    - Write the output pyramid's descriptor to the final location
+    - Write the output pyramid's list to the final location (from the todo lists)
+    - Remove the todo lists
+
+    Args:
+        config (dict): PYR2PYR configuration
+    """
+
+    # Chargement de la pyramide à recopier
+    try:
+        from_pyramid = Pyramid.from_descriptor(config["from"]["descriptor"])
+    except Exception as e:
+        raise Exception(f"Cannot load source pyramid descriptor: {e}")
+
+    # Chargement de la pyramide à écrire
+    try:
+        to_pyramid = Pyramid.from_other(from_pyramid, config["to"]["name"], config["to"]["storage"])
+    except Exception as e:
+        raise Exception(f"Cannot create the destination pyramid descriptor from the source one: {e}")
+
+    try:
+        to_pyramid.write_descriptor()
+    except Exception as e:
+        raise Exception(f"Cannot write output pyramid's descriptor to final location: {e}")
+    
+    try:
+
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as list_file_obj:
+
+            list_file_tmp = list_file_obj.name
+
+            # Écriture de l'en-tête du fichier liste : une seule racine, celle de la pyramide en sortie
+            to_root = os.path.join(to_pyramid.storage_root, to_pyramid.name)
+            list_file_obj.write(f"0={to_root}\n#\n")
+
+            if to_pyramid.storage_s3_cluster is not None:
+                # Les chemins de destination contiendront l'hôte du cluster S3 utilisé,
+                # Il faut donc l'inclure dans la racine à supprimer des chemins vers les dalles
+                to_root = os.path.join(f"{to_pyramid.storage_root}@{to_pyramid.storage_s3_cluster}", to_pyramid.name)
+
+            for i in range(0, config["process"]["parallelization"]):
+
+                todo_list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
+                Storage.copy(os.path.join(config["process"]["directory"], f"todo.{i+1}.list"), f"file://{todo_list_obj.name}")
+
+                for line in todo_list_obj:
+                    line = line.rstrip()
+                    parts = line.split(" ")
+
+                    if (len(parts) != 3 and len(parts) != 4) or parts[0] != "cp":
+                        raise Exception(f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}")  
+
+                    storage_type, path, tray, base_name = Storage.get_infos_from_path(parts[2])
+                    path = path.replace(to_root, "0")
+                    list_file_obj.write(f"{path}\n")
+
+                todo_list_obj.close()
+                Storage.remove(f"file://{todo_list_obj.name}")
+                Storage.remove(os.path.join(config["process"]["directory"], f"todo.{i+1}.list"))
+
+        Storage.copy(f"file://{list_file_tmp}", to_pyramid.list)
+        Storage.remove(f"file://{list_file_tmp}")
+
+    except Exception as e:
+        raise Exception(f"Cannot concatenate splits' done lists and write the final output pyramid's list to the final location: {e}")

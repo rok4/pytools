@@ -1,0 +1,119 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "JOINCACHE pregeneration configuration",
+    "type": "object",
+    "required": [
+        "datasources",
+        "pyramid",
+        "process"
+    ],
+    "properties": {
+        "logger": {
+            "type": "object",
+            "description": "Paramètres du logger",
+            "properties": {
+                "layout": {
+                    "type": "string",
+                    "description": "Format du log, selon la syntaxe Log4perl",
+                    "default": "%5p : %m (%M) %n"
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni"
+                },
+                "level": {
+                    "type": "string",
+                    "description": "Niveau de log",
+                    "enum": [
+                        "DEBUG",
+                        "INFO",
+                        "WARN",
+                        "ERROR",
+                        "ALWAYS"
+                    ],
+                    "default": "WARN"
+                }
+            }
+        },
+        "datasources": {
+            "type": "array",
+            "description": "Pyramides sources",
+            "items": {
+                "type": "object",
+                "required": ["source", "bottom", "top"],
+                "properties": {
+                    "bottom": {
+                        "type": "string",
+                        "description": "Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée"
+                    },
+                    "top": {
+                        "type": "string",
+                        "description": "Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée"
+                    },
+                    "source": {
+                        "type": "object",
+                        "description": "Base PostgreSQL comme source de données",
+                        "required": ["type", "area", "descriptors"],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "Type de source",
+                                "enum": ["PYRAMIDS"]
+                            },
+                            "descriptors": {
+                                "type": "array",
+                                "description": "Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...)",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "pyramid": {
+            "type": "object",
+            "description": "Génération d'une nouvelle pyramide comme produit de fusion",
+            "required": ["name", "root"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Nom de la nouvelle pyramide fusionnée"
+                },
+                "root": {
+                    "type": "string",
+                    "description": "Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT"
+                },
+                "mask": {
+                    "type": "boolean",
+                    "description": "Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements.",
+                    "default": false
+                }
+            }
+        }
+    },
+    "process": {
+        "type": "object",
+        "description": "Paramètres de traitement",
+        "required": ["directories", "parallelization"],
+        "properties": {
+            "directory": {
+                "type": "string",
+                "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
+            },
+            "parallelization": {
+                "type": "integer",
+                "description": "Parallelization level, number of todo lists and agents working at the same time",
+                "minimum": 1,
+                "default": 1
+            },
+            "mask": {
+                "type": "boolean",
+                "description": "Doit-on utiliser les masques de données dans les calculs",
+                "default": false
+            }
+        }
+    }
+}

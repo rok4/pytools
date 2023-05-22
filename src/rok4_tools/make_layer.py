@@ -53,7 +53,7 @@ parser.add_argument(
     action='extend',
     nargs='+',
     type=str,
-    default='normal',
+    default=["normal"],
     dest='styles',
     help='Styles ID available for the layer (no controls, ID are added as provided)',
     required=False

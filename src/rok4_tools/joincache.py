@@ -9,12 +9,10 @@ from jsonschema import validate, ValidationError
 import jsonschema.validators
 from json.decoder import JSONDecodeError
 from pathlib import Path
-import tempfile
-import itertools
 
-from rok4.Pyramid import Pyramid
 from rok4 import Storage
 from rok4_tools import __version__
+from rok4_tools.joincache_utils.master import work as joincache_master
 
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
@@ -70,6 +68,7 @@ if args.role == "agent" and (args.split is None or args.split < 1):
     print("joincache: error: argument --split is required for the agent role and have to be a positive integer")
     sys.exit(1)
 
+config = dict()
 def configuration():
     global config
 
@@ -84,22 +83,25 @@ def configuration():
     )
     validate(
         instance=config,
-        schema={"$ref": "joincache.schema.json"},
+        schema={"$ref": "joincache_utils/schema.json"},
         resolver=resolver,
     )
 
     # Valeurs par défaut et cohérence avec l'appel
-    if config["pyramid"]["storage"]["type"] == "FILE" and "depth" not in config["pyramid"]["storage"]:
-        config["pyramid"]["storage"]["depth"] = 2
-
-    if config["pyramid"]["storage"]["type"] == "FILE" and ("/" in config["to"]["name"] or "\\" in config["to"]["name"]) :
-        raise Exception(f"Name of the new pyramid, {config['pyramid']['name']}, should not have '/' or '\' for file. The path of the directory need to be described in 'root'")
-
     if "parallelization" not in config["process"]:
         config["process"]["parallelization"] = 1
 
     if args.role == "agent" and args.split > config["process"]["parallelization"]:
         raise Exception(f"Split number have to be consistent with the parallelization level: {args.split} > {config['process']['parallelization']}")
+
+    if "mask" not in config["process"] :
+        config["process"]["mask"] = False
+        config["pyramid"]["mask"] = False
+    else :
+        if "mask" not in config["pyramid"] :
+            config["pyramid"]["mask"] = False
+        elif config["process"]["mask"] == False and config["pyramid"]["mask"] == True :
+            raise Exception(f"The new pyramid cannot have mask if masks are not use during the process")
 
     # Logger
     if "logger" in config:
@@ -122,7 +124,7 @@ def configuration():
 def main():
     if args.role == "example":
         # On veut juste afficher la configuration en exemple
-        f = open(os.path.join(os.path.dirname(__file__), "joincache.example.json"))
+        f = open(os.path.join(os.path.dirname(__file__), "joincache_utils/example.json"))
         print(f.read())
         f.close
         sys.exit(0)
@@ -147,4 +149,20 @@ def main():
         # On voulait juste valider le fichier de configuration, c'est chose faite
         # Si on est là c'est que tout est bon
         print("Valid configuration !")
+        sys.exit(0)
+
+    # Work
+    try:
+
+        if args.role == "master":
+            joincache_master(config)
+        elif args.role == "agent":
+            pass
+        elif args.role == "finisher":
+            pass
+
+    except Exception as e:
+        logging.error(e)
+        sys.exit(1)
+
         sys.exit(0)

@@ -53,7 +53,7 @@
                     "source": {
                         "type": "object",
                         "description": "Base PostgreSQL comme source de données",
-                        "required": ["type", "area", "descriptors"],
+                        "required": ["type", "descriptors"],
                         "properties": {
                             "type": {
                                 "type": "string",

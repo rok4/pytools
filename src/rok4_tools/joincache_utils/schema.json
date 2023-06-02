@@ -113,6 +113,11 @@
                 "type": "boolean",
                 "description": "Doit-on utiliser les masques de données dans les calculs",
                 "default": false
+            },
+            "only_links": {
+                "type": "boolean",
+                "description": "Doit-on ne créer que des link et ne pas faire de fusions de dalles entre pyramide",
+                "default": false
             }
         }
     }

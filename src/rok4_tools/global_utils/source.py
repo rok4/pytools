@@ -125,7 +125,7 @@ class SourceRasterPyramids(SourcePyramids):
                 self.__channels = pyramids[i].channels
             else :
                 if self.__channels != pyramids[i].channels :
-                    raise Exception(f"Sources pyramids cannot have two different numbers of channels : {self.__channels} and {pyramid.channels}")
+                    raise Exception(f"Sources pyramids cannot have two different numbers of channels : {self.__channels} and {pyramids.channels}")
 
     @property
     def channels(self) -> int:

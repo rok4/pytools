@@ -105,21 +105,22 @@ def work(config):
                         else :
                             mask = [""]
 
-                    for j in range (i+1,len(from_pyramids)) :
-                        slabs_other = from_pyramids[j].list_generator_level(str(k))
-                        slabs_other_mask = from_pyramids[j].list_generator_level(str(k))
-                        for slab_other in slabs_other :
-                            if slab_other[0] == slab[0] :
-                                from_slab_path_other = Storage.get_path_from_infos(from_pyramids[j].storage_type, slab_other[1]["root"], slab_other[1]["slab"])
-                                process += [from_slab_path_other]
-                                if config["process"]["mask"]:
-                                    slab_mask_other = ((SlabType["MASK"], slab_other[0][1], slab_other[0][2], slab_other[0][3]), slab_other[1])
-                                    slab_mask_other[1]["slab"] = from_pyramids[j].get_slab_path_from_infos(SlabType["MASK"], slab_other[0][1], slab_other[0][2], slab_other[0][3], False)
-                                    if slab_mask_other in slabs_other_mask :
-                                        mask += [Storage.get_path_from_infos(from_pyramids[i].storage_type, slab_mask_other[1]["root"], slab_mask_other[1]["slab"])]
-                                    else :
-                                        mask += [""]
-                                continue
+                    if not config["process"]["only_links"] :
+                        for j in range (i+1,len(from_pyramids)) :
+                            slabs_other = from_pyramids[j].list_generator_level(str(k))
+                            slabs_other_mask = from_pyramids[j].list_generator_level(str(k))
+                            for slab_other in slabs_other :
+                                if slab_other[0] == slab[0] :
+                                    from_slab_path_other = Storage.get_path_from_infos(from_pyramids[j].storage_type, slab_other[1]["root"], slab_other[1]["slab"])
+                                    process += [from_slab_path_other]
+                                    if config["process"]["mask"]:
+                                        slab_mask_other = ((SlabType["MASK"], slab_other[0][1], slab_other[0][2], slab_other[0][3]), slab_other[1])
+                                        slab_mask_other[1]["slab"] = from_pyramids[j].get_slab_path_from_infos(SlabType["MASK"], slab_other[0][1], slab_other[0][2], slab_other[0][3], False)
+                                        if slab_mask_other in slabs_other_mask :
+                                            mask += [Storage.get_path_from_infos(from_pyramids[i].storage_type, slab_mask_other[1]["root"], slab_mask_other[1]["slab"])]
+                                        else :
+                                            mask += [""]
+                                    continue
 
                     to_slab_path = to_pyramid.get_slab_path_from_infos(slab[0][0], slab[0][1], slab[0][2], slab[0][3])
                     if config["pyramid"]["mask"]:

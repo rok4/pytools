@@ -10,9 +10,10 @@ import jsonschema.validators
 from json.decoder import JSONDecodeError
 from pathlib import Path
 
-from rok4 import Storage
+from rok4 import Storage, Pyramid
 from rok4_tools import __version__
 from rok4_tools.joincache_utils.master import work as joincache_master
+from rok4_tools.joincache_utils.agent import work as joincache_agent
 
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
@@ -157,7 +158,7 @@ def main():
         if args.role == "master":
             joincache_master(config)
         elif args.role == "agent":
-            pass
+            joincache_agent(config, args.split)
         elif args.role == "finisher":
             pass
 

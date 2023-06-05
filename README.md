@@ -78,6 +78,48 @@ MAKE-LAYER est un outil générant un descripteur de couche compatible avec le s
 
 Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
 
+### PYR2PYR
+
+L'outil JOINCACHE génèrent une pyramide raster à partir d'autres pyramide raster compatibles (même TMS, dalles de même dimensions, canaux au même format). La composition se fait verticalement (choix des pyramides sources par niveau) et horizontalement (choix des pyramides source par zone au sein d'un niveau).
+
+Un exemple de configuration est affichable avec la commande `joincache --role example` et l'appel `joincache --role check --conf conf.json` permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : `s3://bucket/configuration.json`)
+
+#### Fonctionnement
+
+Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
+
+1. Rôle `master`
+    * Actions : contrôle du fichier de configuration et des pyramides, identification du travail, génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
+    * Appel : `joincache --role master --conf conf.json`
+2. Rôle `agent` : 
+    * Actions : lecture de la TODO list depuis le dossier de traitement et traitement de chaque ligne
+    * Appel (un appel par TODO list) : `joincache --role agent --conf conf.json --split X`
+3. Rôle `finisher` : 
+    * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
+    * Appel : `joincache --role finisher --conf conf.json`
+
+#### Configuration
+
+Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/joincache_utils/schema.json /dev/stdout`)
+
+- **`logger`** *(object)*: Paramètres du logger.
+  - **`layout`** *(string)*: Format du log, selon la syntaxe Log4perl. Default: `%5p : %m (%M) %n`.
+  - **`file`** *(string)*: Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni.
+  - **`level`** *(string)*: Niveau de log. Must be one of: `['DEBUG', 'INFO', 'WARN', 'ERROR', 'ALWAYS']`. Default: `WARN`.
+- **`datasources`** *(array)*: Pyramides sources.
+  - **Items** *(object)*
+    - **`bottom`** *(string)*: Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée.
+    - **`top`** *(string)*: Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée.
+    - **`source`** *(object)*: Base PostgreSQL comme source de données.
+      - **`type`** *(string)*: Type de source. Must be one of: `['PYRAMIDS']`.
+      - **`descriptors`** *(array)*: Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...).
+        - **Items** *(string)*
+- **`pyramid`** *(object)*: Génération d'une nouvelle pyramide comme produit de fusion.
+  - **`name`** *(string)*: Nom de la nouvelle pyramide fusionnée.
+  - **`root`** *(string)*: Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT.
+  - **`mask`** *(boolean)*: Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements. Default: `False`.
+
+
 
 ## Compiler la suite d'outils
 

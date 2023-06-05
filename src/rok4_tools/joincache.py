@@ -14,6 +14,7 @@ from rok4 import Storage, Pyramid
 from rok4_tools import __version__
 from rok4_tools.joincache_utils.master import work as joincache_master
 from rok4_tools.joincache_utils.agent import work as joincache_agent
+from rok4_tools.joincache_utils.finisher import work as finisher_agent
 
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
@@ -160,7 +161,7 @@ def main():
         elif args.role == "agent":
             joincache_agent(config, args.split)
         elif args.role == "finisher":
-            pass
+            finisher_agent(config)
 
     except Exception as e:
         logging.error(e)

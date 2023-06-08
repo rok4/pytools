@@ -65,7 +65,7 @@ class SourcePyramids(Source):
                 try :
                     level = pyramid.get_level(str(k))
                 except Exception as e :
-                    raise Exception(f"The level {str(k)} between levels {self.__top} and {self.__bottom} is not defined for {pyramid.name}")
+                    raise Exception(f"The level {str(k)} between levels {self.top} and {self.bottom} is not defined for {pyramid.name}")
 
     @property
     def tms(self) -> str:

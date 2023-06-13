@@ -73,6 +73,7 @@ def work(config):
     level_finish = []
     for sources in datasources :
         for k in range (int(sources.top), int(sources.bottom) + 1) :
+            # Vérification que plusieurs datasources ne définissent pas un même niveau
             if str(k) not in level_finish :
                 try :
                     to_pyramid.delete_level(str(k))
@@ -86,8 +87,10 @@ def work(config):
             from_pyramids = sources.pyramids
 
             for i in range (len(from_pyramids)) :
+                # Récupération des dalles de la pyramide
                 slabs = from_pyramids[i].list_generator_level(str(k))
                 slabs_mask = from_pyramids[i].list_generator_level(str(k))
+                # Vérification si la dalle à déjà été traitée
                 for slab in slabs :
                     if slab[0] in slab_finish :
                         continue
@@ -97,6 +100,7 @@ def work(config):
                     process = [from_slab_path]
                     slab_finish += [slab[0]]
 
+                    # Recherche du masque correspondant à la dalle
                     if config["process"]["mask"]:
                         slab_mask = ((SlabType["MASK"], slab[0][1], slab[0][2], slab[0][3]), slab[1])
                         slab_mask[1]["slab"] = from_pyramids[i].get_slab_path_from_infos(SlabType["MASK"], slab[0][1], slab[0][2], slab[0][3], False)
@@ -105,6 +109,7 @@ def work(config):
                         else :
                             mask = [""]
 
+                    # Recherche de la dalle dans d'autres pyramides sources
                     if not config["process"]["only_links"] :
                         for j in range (i+1,len(from_pyramids)) :
                             slabs_other = from_pyramids[j].list_generator_level(str(k))
@@ -126,6 +131,7 @@ def work(config):
                     if config["pyramid"]["mask"]:
                         to_slab_path_mask = to_pyramid.get_slab_path_from_infos(SlabType["MASK"], slab[0][1], slab[0][2], slab[0][3])
 
+                    # Ecriture des commandes dans les todo-lists
                     if len(process) == 1 :
                         next(round_robin).write(f"link {to_slab_path} {from_slab_path}\n")
                         if config["pyramid"]["mask"]:

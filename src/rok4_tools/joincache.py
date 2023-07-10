@@ -104,6 +104,9 @@ def configuration():
             config["pyramid"]["mask"] = False
         elif config["process"]["mask"] == False and config["pyramid"]["mask"] == True :
             raise Exception(f"The new pyramid cannot have mask if masks are not use during the process")
+        
+    if "only_links" not in config["process"] :
+        config["process"]["only_links"] = False
 
     # Logger
     if "logger" in config:

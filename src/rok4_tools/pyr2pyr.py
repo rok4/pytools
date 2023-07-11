@@ -19,56 +19,63 @@ from rok4_tools import __version__
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
 
-# CLI call parser
-parser = argparse.ArgumentParser(
-    prog = 'pyr2pyr',
-    description = "Tool to split the work to do for a pyramid copy and make slabs' copy",
-    epilog = ''
-)
 
-parser.add_argument(
-    '--version',
-    action='version',
-    version='%(prog)s ' + __version__
-)
+args = None
 
-parser.add_argument(
-    '--role',
-    choices=["master", "agent", "finisher", "example", "check"],
-    action='store',
-    dest='role',
-    help="Script's role",
-    required=True
-)
+def parse():
 
-parser.add_argument(
-    '--conf',
-    metavar='storage://path/to/conf.json',
-    action='store',
-    dest='configuration',
-    help='Configuration file or object, JSON format',
-    required=False
-)
+    global args
 
-parser.add_argument(
-    '--split',
-    type=int,
-    metavar="N",
-    action='store',
-    dest='split',
-    help='Split number, only required for the agent role',
-    required=False
-)
+    # CLI call parser
+    parser = argparse.ArgumentParser(
+        prog = 'pyr2pyr',
+        description = "Tool to split the work to do for a pyramid copy and make slabs' copy",
+        epilog = ''
+    )
 
-args = parser.parse_args()
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s ' + __version__
+    )
 
-if args.role != "example" and (args.configuration is None):
-    print("pyr2pyr: error: argument --conf is required for all roles execept 'example'")
-    sys.exit(1)
+    parser.add_argument(
+        '--role',
+        choices=["master", "agent", "finisher", "example", "check"],
+        action='store',
+        dest='role',
+        help="Script's role",
+        required=True
+    )
 
-if args.role == "agent" and (args.split is None or args.split < 1):
-    print("pyr2pyr: error: argument --split is required for the agent role and have to be a positive integer")
-    sys.exit(1)
+    parser.add_argument(
+        '--conf',
+        metavar='storage://path/to/conf.json',
+        action='store',
+        dest='configuration',
+        help='Configuration file or object, JSON format',
+        required=False
+    )
+
+    parser.add_argument(
+        '--split',
+        type=int,
+        metavar="N",
+        action='store',
+        dest='split',
+        help='Split number, only required for the agent role',
+        required=False
+    )
+
+    args = parser.parse_args()
+
+    if args.role != "example" and (args.configuration is None):
+        print("pyr2pyr: error: argument --conf is required for all roles execept 'example'")
+        sys.exit(1)
+
+    if args.role == "agent" and (args.split is None or args.split < 1):
+        print("pyr2pyr: error: argument --split is required for the agent role and have to be a positive integer")
+        sys.exit(1)
 
 
 # Tool steps
@@ -131,10 +138,10 @@ def master_work():
     """Master steps : prepare and split copies to do
 
     Inputs:
-    - Configuration
+        Configuration
 
     Outputs:
-    - Todo lists
+        Todo lists
 
     Steps:
     - Load the input pyramid form the descriptor
@@ -379,6 +386,11 @@ def finisher_work():
         raise Exception(f"Cannot concatenate splits' done lists and write the final output pyramid's list to the final location: {e}")
 
 def main():
+    try:
+        parse()
+    except Exception as e:
+        logging.error(e)
+        sys.exit(1)
 
     if args.role == "example":
         # On veut juste afficher la configuration en exemple

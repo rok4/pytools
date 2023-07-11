@@ -14,88 +14,94 @@ from rok4_tools import __version__
 # Default logger
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
 
-# CLI call parser
-parser = argparse.ArgumentParser(
-    prog = 'make-layer',
-    description = "Tool to generate layer descriptor from pyramids' descriptor",
-    epilog = ''
-)
+args = None
 
-parser.add_argument(
-    '--version',
-    action='version',
-    version='%(prog)s ' + __version__
-)
+def parse():
 
-parser.add_argument(
-    '--pyramids',
-    metavar='storage://path/to/pyr.json[>BOTTOM>TOP]',
-    action='extend',
-    nargs='+',
-    type=str,
-    dest='pyramids',
-    help="Pyramids' descriptors, with extrem levels to use if not all levels have to be used",
-    required=True
-)
+    global args
 
-parser.add_argument(
-    '--name',
-    metavar="my data",
-    action='store',
-    dest='name',
-    help="Layer's technical name",
-    required=True
-)
+    # CLI call parser
+    parser = argparse.ArgumentParser(
+        prog = 'make-layer',
+        description = "Tool to generate layer descriptor from pyramids' descriptor",
+        epilog = ''
+    )
 
-parser.add_argument(
-    '--styles',
-    metavar="normal",
-    action='extend',
-    nargs='+',
-    type=str,
-    default='normal',
-    dest='styles',
-    help='Styles ID available for the layer (no controls, ID are added as provided)',
-    required=False
-)
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s ' + __version__
+    )
 
-parser.add_argument(
-    '--title',
-    metavar="my data",
-    action='store',
-    dest='title',
-    help='Layer title',
-    required=False
-)
+    parser.add_argument(
+        '--pyramids',
+        metavar='storage://path/to/pyr.json[>BOTTOM>TOP]',
+        action='extend',
+        nargs='+',
+        type=str,
+        dest='pyramids',
+        help="Pyramids' descriptors, with extrem levels to use if not all levels have to be used",
+        required=True
+    )
 
-parser.add_argument(
-    '--abstract',
-    metavar="my data description",
-    action='store',
-    dest='abstract',
-    help='Layer description',
-    required=False
-)
+    parser.add_argument(
+        '--name',
+        metavar="my data",
+        action='store',
+        dest='name',
+        help="Layer's technical name",
+        required=True
+    )
 
-parser.add_argument(
-    '--resampling',
-    choices=["nn", "linear", "bicubic", "lanczos_2", "lanczos_3", "lanczos_4"],
-    action='store',
-    dest='abstract',
-    help='Layer resampling',
-    required=False
-)
+    parser.add_argument(
+        '--styles',
+        metavar="normal",
+        action='extend',
+        nargs='+',
+        type=str,
+        default='normal',
+        dest='styles',
+        help='Styles ID available for the layer (no controls, ID are added as provided)',
+        required=False
+    )
 
-parser.add_argument(
-    '--directory',
-    action='store',
-    dest='directory',
-    metavar="s3://layers_bucket",
-    help="Directory (file or object) where to write layer's descriptor. Print in standard output if not provided",
-    required=False
-)
+    parser.add_argument(
+        '--title',
+        metavar="my data",
+        action='store',
+        dest='title',
+        help='Layer title',
+        required=False
+    )
 
-args = parser.parse_args()
+    parser.add_argument(
+        '--abstract',
+        metavar="my data description",
+        action='store',
+        dest='abstract',
+        help='Layer description',
+        required=False
+    )
+
+    parser.add_argument(
+        '--resampling',
+        choices=["nn", "linear", "bicubic", "lanczos_2", "lanczos_3", "lanczos_4"],
+        action='store',
+        dest='abstract',
+        help='Layer resampling',
+        required=False
+    )
+
+    parser.add_argument(
+        '--directory',
+        action='store',
+        dest='directory',
+        metavar="s3://layers_bucket",
+        help="Directory (file or object) where to write layer's descriptor. Print in standard output if not provided",
+        required=False
+    )
+
+    args = parser.parse_args()
 
 def work():
 
@@ -128,6 +134,7 @@ def work():
 
 def main():
     try:
+        parse()
         work()
 
     except Exception as e:

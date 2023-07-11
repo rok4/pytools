@@ -35,10 +35,25 @@ dependencies = [
   "rok4 >= 1.4.4"
 ]
 
+[project.optional-dependencies]
+doc = [
+  "pdoc3 >= 0.10.0"
+]
+
+dev = [
+  "black",
+  "pre-commit >3,<4"
+]
+
+test = [
+  "pytest >= 7.1.2",
+  "coverage >= 7.0.5"
+]
+
 [project.urls]
 "Homepage" = "https://rok4.github.io/documentation/pytools"
 "Bug Reports" = "https://github.com/rok4/pytools/issues"
-"Changelog" = "https://github.com/rok4/pytools/releases"
+"Changelog" = "https://rok4.github.io/pytools/versions/"
 "Source" = "https://github.com/rok4/pytools"
 
 [project.scripts]
@@ -51,6 +66,10 @@ rok4_tools = ["*.json"]
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
 
 [tool.setuptools.packages.find]
 where = ["src"]

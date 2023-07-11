@@ -4,15 +4,6 @@
 
 Ce projet contient des outils de gestion des pyramides de données, écrits en Python.
 
-- [Installer les outils](#installer-les-outils)
-- [Utiliser les outils](#utiliser-les-outils)
-    - [PYR2PYR](#pyr2pyr)
-        - [Fonctionnement](#fonctionnement)
-        - [Configuration](#configuration)
-    - [MAKE-LAYER](#make-layer)
-- [Compiler la suite d'outils](#compiler-la-suite-doutils)
-- [Publier la suite d'outils sur Pypi](#publier-la-suite-doutils-sur-pypi)
-
 ## Installer les outils
 
 Installations système requises :
@@ -24,6 +15,7 @@ Depuis [PyPI](https://pypi.org/project/rok4-tools/) : `pip install rok4-tools`
 Depuis [GitHub](https://github.com/rok4/pytools/releases/) : `pip install https://github.com/rok4/pytools/releases/download/x.y.z/rok4_tools-x.y.z-py3-none-any.whl`
 
 L'environnement d'exécution doit avoir accès aux librairies système. Dans le cas d'une utilisation au sein d'un environnement python, précisez bien à la création `python3 -m venv --system-site-packages .venv`.
+
 
 ## Utiliser les outils
 
@@ -82,15 +74,33 @@ Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP
 ## Compiler la suite d'outils
 
 ```sh
-apt install python3-venv
+apt install python3-venv python3-rados python3-gdal
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade build bump2version
 bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4_tools/__init__.py
 
+# To use system installed modules rados and osgeo
+echo "/usr/lib/python3/dist-packages/" >.venv/lib/python3.10/site-packages/system.pth
+python3 -c 'import sys; print (sys.path)'
+
+# Build documentation
+python3 -m pip install -e .[doc]
+pdoc3 --html --output-dir dist/ rok4_tools
+
 # Build artefacts
 python3 -m build
 ```
+
+## Contribuer
+
+* Installer les dépendances de développement :
+
+    ```sh
+    python3 -m pip install -e[dev]
+    ```
+
+* Consulter les [directives de contribution](./CONTRIBUTING.md)
 
 ## Publier la suite d'outils sur Pypi
 

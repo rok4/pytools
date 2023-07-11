@@ -32,7 +32,8 @@ classifiers = [
 
 dependencies = [
   "jsonschema",
-  "rok4 >= 1.4.4"
+  "rok4 >= 1.4.4",
+  "core-python >= 1.8.0"
 ]
 
 [project.urls]

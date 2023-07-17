@@ -37,30 +37,41 @@ class SourcePyramids(Source):
     """Pyramid sources to load to create a new pyramid
 
     Attributes:
-        __tms (str): Name of the TileMatrixSets of the sources
-        __format (str): Name of the format of the sources
+        __tms (TileMatrxSet): Tile Matrix Set of the sources
+        __format (str): Format of the sources
         __pyramids (List[Pyramid]): List of the loaded pyramid sources
     """
 
     def __init__(self, bottom: str, top: str, descriptors: List[str]) -> None:
         Source.__init__(self, bottom, top)
+
+        self.__tms = None
+        self.__format = None
         self.__pyramids = []
-        for i in range(len(descriptors)):
+
+        for d in descriptors:
             # Chargement de la pyramide source
             try:
-                pyramid = Pyramid.from_descriptor(descriptors[i])
-                self.__pyramids += [pyramid]
+                pyramid = Pyramid.from_descriptor(d)
+                self.__pyramids.append(pyramid)
+
+                if pyramid.storage_s3_cluster is not None:
+                    # On ne travaille que sur un unique cluster S3, il ne faut pas préciser lequel dans les chemins
+                    raise Exception(
+                        f"Do not set S3 cluster host into bucket name ({d}) : only one cluster can be used for sources"
+                    )
+
             except Exception as e:
-                raise Exception(f"Cannot load source pyramid descriptor : {descriptors[i]} : {e}")
+                raise Exception(f"Cannot load source pyramid descriptor : {d} : {e}")
 
             # Vérification de l'unicité du des caractéristiques des pyramides
-            if i == 0:
-                self.__tms = pyramid.tms.name
+            if self.__format is None:
+                self.__tms = pyramid.tms
                 self.__format = pyramid.format
             else:
-                if self.__tms != pyramid.tms.name:
+                if self.__tms.name != pyramid.tms.name:
                     raise Exception(
-                        f"Sources pyramids cannot have two different TMS : {self.__tms} and {pyramid.tms}"
+                        f"Sources pyramids cannot have two different TMS : {self.__tms.name} and {pyramid.tms.name}"
                     )
 
                 if self.__format != pyramid.format:
@@ -68,14 +79,11 @@ class SourcePyramids(Source):
                         f"Sources pyramids cannot have two different format : {self.__format} and {pyramid.format}"
                     )
 
-            # Vérification de la présence de la présence des niveaux et de l'unicité du nombre de tuiles par dalles par niveau
-            for k in range(int(self.top), int(self.bottom) + 1):
-                try:
-                    level = pyramid.get_level(str(k))
-                except Exception as e:
-                    raise Exception(
-                        f"The level {str(k)} between levels {self.top} and {self.bottom} is not defined for {pyramid.name}"
-                    )
+            # Vérification de la présence des niveaux
+            try:
+                level = pyramid.get_levels(bottom, top)
+            except Exception as e:
+                raise Exception(f"All levels between {bottom} -> {top} are not in {pyramid.name}")
 
     @property
     def tms(self) -> str:
@@ -90,11 +98,11 @@ class SourcePyramids(Source):
         return self.__pyramids
 
     def info_level(self, id_level: str) -> Tuple[int, int, Dict[str, int]]:
-        pyramids = self.pyramids
         slab_width = None
         slab_height = None
         tile_limits = None
-        for pyramid in pyramids:
+
+        for pyramid in self.__pyramids:
             level = pyramid.get_level(id_level)
             tile_limits_level = level.tile_limits
             if slab_width != None:

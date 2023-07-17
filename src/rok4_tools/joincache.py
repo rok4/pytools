@@ -8,7 +8,6 @@ import json
 from jsonschema import validate, ValidationError
 import jsonschema.validators
 from json.decoder import JSONDecodeError
-from pathlib import Path
 
 from rok4 import Storage, Pyramid
 from rok4_tools import __version__
@@ -94,20 +93,14 @@ def configuration() -> None:
 
     global config
 
-    # Chargement de la configuration JSON
-    config = json.loads(Storage.get_data_str(args.configuration))
+    # Chargement du schéma JSON
+    f = open(os.path.join(os.path.dirname(__file__), "joincache_utils", "schema.json"))
+    schema = json.load(f)
+    f.close()
 
-    # Validation via le schéma JSON
-    path = Path(os.path.abspath(os.path.dirname(__file__)), "joincache_utils")
-    resolver = jsonschema.validators.RefResolver(
-        base_uri=f"{path.as_uri()}/",
-        referrer=True,
-    )
-    validate(
-        instance=config,
-        schema={"$ref": "schema.json"},
-        resolver=resolver,
-    )
+    # Chargement et validation de la configuration JSON
+    config = json.loads(Storage.get_data_str(args.configuration))
+    validate(config, schema)
 
     # Valeurs par défaut et cohérence avec l'appel
     if "parallelization" not in config["process"]:
@@ -118,6 +111,9 @@ def configuration() -> None:
             f"Split number have to be consistent with the parallelization level: {args.split} > {config['process']['parallelization']}"
         )
 
+    if "only_links" not in config["process"]:
+        config["process"]["only_links"] = False
+
     if "mask" not in config["process"]:
         config["process"]["mask"] = False
         config["pyramid"]["mask"] = False
@@ -126,7 +122,7 @@ def configuration() -> None:
             config["pyramid"]["mask"] = False
         elif config["process"]["mask"] == False and config["pyramid"]["mask"] == True:
             raise Exception(
-                f"The new pyramid cannot have mask if masks are not use during the process"
+                f"The new pyramid cannot have mask if masks are not used during the process"
             )
 
     # Logger
@@ -198,4 +194,4 @@ def main():
         logging.error(e)
         sys.exit(1)
 
-        sys.exit(0)
+    sys.exit(0)

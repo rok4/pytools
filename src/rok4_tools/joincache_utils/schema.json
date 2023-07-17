@@ -2,6 +2,7 @@
     "$schema": "http://json-schema.org/schema#",
     "title": "JOINCACHE pregeneration configuration",
     "type": "object",
+    "additionalProperties": false,
     "required": [
         "datasources",
         "pyramid",
@@ -10,59 +11,63 @@
     "properties": {
         "logger": {
             "type": "object",
+            "additionalProperties": false,
             "description": "Paramètres du logger",
             "properties": {
                 "layout": {
                     "type": "string",
-                    "description": "Format du log, selon la syntaxe Log4perl",
-                    "default": "%5p : %m (%M) %n"
+                    "description": "Log format, according to logging python library",
+                    "default": "%(asctime)s %(levelname)s: %(message)s"
                 },
                 "file": {
                     "type": "string",
-                    "description": "Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni"
+                    "description": "Path to log file. Standard output is used if not provided"
                 },
                 "level": {
                     "type": "string",
-                    "description": "Niveau de log",
+                    "description": "Log level",
                     "enum": [
                         "DEBUG",
                         "INFO",
-                        "WARN",
+                        "WARNING",
                         "ERROR",
-                        "ALWAYS"
+                        "CRITICAL",
+                        "NOTSET"
                     ],
-                    "default": "WARN"
+                    "default": "WARNING"
                 }
             }
         },
         "datasources": {
             "type": "array",
-            "description": "Pyramides sources",
+            "description": "Source pyramids",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": ["source", "bottom", "top"],
                 "properties": {
                     "bottom": {
                         "type": "string",
-                        "description": "Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée"
+                        "description": "Bottom level's usage for source pyramids"
                     },
                     "top": {
                         "type": "string",
-                        "description": "Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée"
+                        "description": "Top level's usage for source pyramids"
                     },
                     "source": {
                         "type": "object",
-                        "description": "Base PostgreSQL comme source de données",
+                        "additionalProperties": false,
+                        "description": "Pyramids as data source",
                         "required": ["type", "descriptors"],
                         "properties": {
                             "type": {
                                 "type": "string",
-                                "description": "Type de source",
+                                "description": "Source type",
                                 "enum": ["PYRAMIDS"]
                             },
                             "descriptors": {
                                 "type": "array",
-                                "description": "Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...)",
+                                "description": "Paths to pyramids' descriptors (all with the same characteritics : TMS, formats...)",
                                 "items": {
                                     "type": "string"
                                 },
@@ -75,49 +80,51 @@
         },
         "pyramid": {
             "type": "object",
-            "description": "Génération d'une nouvelle pyramide comme produit de fusion",
+            "additionalProperties": false,
+            "description": "Output pyramid's storage informations",
             "required": ["name", "root"],
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "Nom de la nouvelle pyramide fusionnée"
+                    "description": "Output pyramid's name"
                 },
                 "root": {
                     "type": "string",
-                    "description": "Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT"
+                    "description": "Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage"
                 },
                 "mask": {
                     "type": "boolean",
-                    "description": "Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements.",
+                    "description": "Mask export ? If true, masks are used for processing.",
                     "default": false
                 }
             }
-        }
-    },
-    "process": {
-        "type": "object",
-        "description": "Paramètres de traitement",
-        "required": ["directories", "parallelization"],
-        "properties": {
-            "directory": {
-                "type": "string",
-                "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
-            },
-            "parallelization": {
-                "type": "integer",
-                "description": "Parallelization level, number of todo lists and agents working at the same time",
-                "minimum": 1,
-                "default": 1
-            },
-            "mask": {
-                "type": "boolean",
-                "description": "Doit-on utiliser les masques de données dans les calculs",
-                "default": false
-            },
-            "only_links": {
-                "type": "boolean",
-                "description": "Doit-on ne créer que des link et ne pas faire de fusions de dalles entre pyramide",
-                "default": false
+        },
+        "process": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Processing parameters",
+            "required": ["directory"],
+            "properties": {
+                "directory": {
+                    "type": "string",
+                    "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
+                },
+                "parallelization": {
+                    "type": "integer",
+                    "description": "Parallelization level, number of todo lists and agents working at the same time",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "mask": {
+                    "type": "boolean",
+                    "description": "Source masks used for processing ?",
+                    "default": false
+                },
+                "only_links": {
+                    "type": "boolean",
+                    "description": "Only links are made ? If true, only top slab will be considered and linked",
+                    "default": false
+                }
             }
         }
     }

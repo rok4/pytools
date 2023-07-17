@@ -8,7 +8,6 @@ import json
 from jsonschema import validate, ValidationError
 import jsonschema.validators
 from json.decoder import JSONDecodeError
-from pathlib import Path
 
 from rok4_tools import __version__
 from rok4_tools.pyr2pyr_utils.master import work as master_work
@@ -95,20 +94,14 @@ def configuration() -> None:
 
     global config
 
-    # Chargement de la configuration JSON
-    config = json.loads(Storage.get_data_str(args.configuration))
+    # Chargement du schéma JSON
+    f = open(os.path.join(os.path.dirname(__file__), "pyr2pyr_utils", "schema.json"))
+    schema = json.load(f)
+    f.close()
 
-    # Validation via le schéma JSON
-    path = Path(os.path.abspath(os.path.dirname(__file__)), "pyr2pyr_utils")
-    resolver = jsonschema.validators.RefResolver(
-        base_uri=f"{path.as_uri()}/",
-        referrer=True,
-    )
-    validate(
-        instance=config,
-        schema={"$ref": "schema.json"},
-        resolver=resolver,
-    )
+    # Chargement et validation de la configuration JSON
+    config = json.loads(Storage.get_data_str(args.configuration))
+    validate(config, schema)
 
     # Valeurs par défaut et cohérence avec l'appel
     if config["to"]["storage"]["type"] == "FILE" and "depth" not in config["to"]["storage"]:

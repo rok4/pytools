@@ -14,9 +14,7 @@ def work(config: Dict, split: int) -> None:
     does not start from the beginning, but after the last copied slab. This file contains only the
     destination path of the last processed slab.
 
-    Write the output pyramid's descriptor to the final location,
-    write the output pyramid's list to the final location (from the todo lists)
-    and remove the todo lists
+    For each line in the todo list, a slab copy is done.
 
     Args:
         config (Dict): PYR2PYR configuration

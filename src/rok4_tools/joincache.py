@@ -12,66 +12,71 @@ from pathlib import Path
 
 from rok4 import Storage, Pyramid
 from rok4_tools import __version__
-from rok4_tools.joincache_utils.master import work as joincache_master
-from rok4_tools.joincache_utils.agent import work as joincache_agent
-from rok4_tools.joincache_utils.finisher import work as finisher_agent
+from rok4_tools.joincache_utils.master import work as master_work
+from rok4_tools.joincache_utils.agent import work as agent_work
+from rok4_tools.joincache_utils.finisher import work as finisher_work
 
 # Default logger
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.WARNING)
+logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.WARNING)
 
-# CLI call parser
-parser = argparse.ArgumentParser(
-    prog = 'joincache',
-    description = "Tool to generate a pyramid from other compatible pyramid",
-    epilog = ''
-)
+config = {}
+args = None
 
-parser.add_argument(
-    '--version',
-    action='version',
-    version='%(prog)s ' + __version__
-)
 
-parser.add_argument(
-    '--role',
-    choices=["master", "agent", "finisher", "example", "check"],
-    action='store',
-    dest='role',
-    help="Script's role",
-    required=True
-)
+def parse() -> None:
+    global args
 
-parser.add_argument(
-    '--conf',
-    metavar='storage://path/to/conf.json',
-    action='store',
-    dest='configuration',
-    help='Configuration file or object, JSON format',
-    required=False
-)
+    # CLI call parser
+    parser = argparse.ArgumentParser(
+        prog="joincache",
+        description="Tool to generate a pyramid from other compatible pyramid",
+        epilog="",
+    )
 
-parser.add_argument(
-    '--split',
-    type=int,
-    metavar="N",
-    action='store',
-    dest='split',
-    help='Split number, only required for the agent role',
-    required=False
-)
+    parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
 
-args = parser.parse_args()
+    parser.add_argument(
+        "--role",
+        choices=["master", "agent", "finisher", "example", "check"],
+        action="store",
+        dest="role",
+        help="Script's role",
+        required=True,
+    )
 
-if args.role != "example" and (args.configuration is None):
-    print("joincache: error: argument --conf is required for all roles except 'example'")
-    sys.exit(1)
+    parser.add_argument(
+        "--conf",
+        metavar="storage://path/to/conf.json",
+        action="store",
+        dest="configuration",
+        help="Configuration file or object, JSON format",
+        required=False,
+    )
 
-if args.role == "agent" and (args.split is None or args.split < 1):
-    print("joincache: error: argument --split is required for the agent role and have to be a positive integer")
-    sys.exit(1)
+    parser.add_argument(
+        "--split",
+        type=int,
+        metavar="N",
+        action="store",
+        dest="split",
+        help="Split number, only required for the agent role",
+        required=False,
+    )
 
-config = dict()
-def configuration():
+    args = parser.parse_args()
+
+    if args.role != "example" and (args.configuration is None):
+        print("joincache: error: argument --conf is required for all roles except 'example'")
+        sys.exit(1)
+
+    if args.role == "agent" and (args.split is None or args.split < 1):
+        print(
+            "joincache: error: argument --split is required for the agent role and have to be a positive integer"
+        )
+        sys.exit(1)
+
+
+def configuration() -> None:
     global config
 
     # Chargement de la configuration JSON
@@ -94,19 +99,20 @@ def configuration():
         config["process"]["parallelization"] = 1
 
     if args.role == "agent" and args.split > config["process"]["parallelization"]:
-        raise Exception(f"Split number have to be consistent with the parallelization level: {args.split} > {config['process']['parallelization']}")
+        raise Exception(
+            f"Split number have to be consistent with the parallelization level: {args.split} > {config['process']['parallelization']}"
+        )
 
-    if "mask" not in config["process"] :
+    if "mask" not in config["process"]:
         config["process"]["mask"] = False
         config["pyramid"]["mask"] = False
-    else :
-        if "mask" not in config["pyramid"] :
+    else:
+        if "mask" not in config["pyramid"]:
             config["pyramid"]["mask"] = False
-        elif config["process"]["mask"] == False and config["pyramid"]["mask"] == True :
-            raise Exception(f"The new pyramid cannot have mask if masks are not use during the process")
-        
-    if "only_links" not in config["process"] :
-        config["process"]["only_links"] = False
+        elif config["process"]["mask"] == False and config["pyramid"]["mask"] == True:
+            raise Exception(
+                f"The new pyramid cannot have mask if masks are not use during the process"
+            )
 
     # Logger
     if "logger" in config:
@@ -118,15 +124,18 @@ def configuration():
             logging.basicConfig(
                 level=logging.getLevelName(config["logger"].get("level", "WARNING")),
                 format=config["logger"].get("layout", "%(asctime)s %(levelname)s: %(message)s"),
-                filename=config["logger"]["file"]
+                filename=config["logger"]["file"],
             )
         else:
             logging.basicConfig(
                 level=logging.getLevelName(config["logger"].get("level", "WARNING")),
-                format=config["logger"].get("layout", "%(asctime)s %(levelname)s: %(message)s")
+                format=config["logger"].get("layout", "%(asctime)s %(levelname)s: %(message)s"),
             )
 
+
 def main():
+    parse()
+
     if args.role == "example":
         # On veut juste afficher la configuration en exemple
         f = open(os.path.join(os.path.dirname(__file__), "joincache_utils/example.json"))
@@ -158,13 +167,12 @@ def main():
 
     # Work
     try:
-
         if args.role == "master":
-            joincache_master(config)
+            master_work(config)
         elif args.role == "agent":
-            joincache_agent(config, args.split)
+            agent_work(config, args.split)
         elif args.role == "finisher":
-            finisher_agent(config)
+            finisher_work(config)
 
     except Exception as e:
         logging.error(e)

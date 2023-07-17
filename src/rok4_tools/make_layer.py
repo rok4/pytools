@@ -17,6 +17,11 @@ args = None
 
 
 def parse() -> None:
+    """Parse call arguments and check values
+
+    Exit program if an error occured
+    """
+
     global args
 
     # CLI call parser
@@ -100,6 +105,16 @@ def parse() -> None:
 
 
 def work() -> None:
+    """Load informations and write layer descriptor
+
+    If the directory option is provided, descriptor will be written in it, else it is print into standard output.
+
+    Raises:
+        Exception: name contains forbidden characters or used pyramids do not shared same parameters (format, tms...)
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage write issue
+    """
+
     # Chargement des pyramides à utiliser dans la couche
     pyramids = []
     for p in args.pyramids:
@@ -125,6 +140,11 @@ def work() -> None:
 
 
 def main() -> None:
+    """Main function
+
+    Return 0 if success, 1 if an error occured
+    """
+
     parse()
 
     try:

@@ -25,6 +25,11 @@ args = None
 
 
 def parse() -> None:
+    """Parse call arguments and check values
+
+    Exit program if an error occured
+    """
+
     global args
 
     # CLI call parser
@@ -78,6 +83,16 @@ def parse() -> None:
 
 
 def configuration() -> None:
+    """Load configuration file
+
+    Raises:
+        JSONDecodeError: Configuration is not a valid JSON file
+        ValidationError: Configuration is not a valid PYR2PYR configuration file
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+    """
+
     global config
 
     # Chargement de la configuration JSON
@@ -133,6 +148,11 @@ def configuration() -> None:
 
 
 def main() -> None:
+    """Main function
+
+    Return 0 if success, 1 if an error occured
+    """
+
     parse()
 
     if args.role == "example":

@@ -24,6 +24,11 @@ args = None
 
 
 def parse() -> None:
+    """Parse call arguments and check values
+
+    Exit program if an error occured
+    """
+
     global args
 
     # CLI call parser
@@ -77,20 +82,30 @@ def parse() -> None:
 
 
 def configuration() -> None:
+    """Load configuration file
+
+    Raises:
+        JSONDecodeError: Configuration is not a valid JSON file
+        ValidationError: Configuration is not a valid JOINCACHE configuration file
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+    """
+
     global config
 
     # Chargement de la configuration JSON
     config = json.loads(Storage.get_data_str(args.configuration))
 
-    # Validation via le schéma JSON, à côté du script
-    path = Path(os.path.abspath(os.path.dirname(__file__)))
+    # Validation via le schéma JSON
+    path = Path(os.path.abspath(os.path.dirname(__file__)), "joincache_utils")
     resolver = jsonschema.validators.RefResolver(
         base_uri=f"{path.as_uri()}/",
         referrer=True,
     )
     validate(
         instance=config,
-        schema={"$ref": "joincache_utils/schema.json"},
+        schema={"$ref": "schema.json"},
         resolver=resolver,
     )
 
@@ -134,6 +149,11 @@ def configuration() -> None:
 
 
 def main():
+    """Main function
+
+    Return 0 if success, 1 if an error occured
+    """
+
     parse()
 
     if args.role == "example":

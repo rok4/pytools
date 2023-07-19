@@ -3,7 +3,7 @@ import tempfile
 import os
 import logging
 
-from rok4.Pyramid import Pyramid
+from rok4.pyramid import Pyramid
 from rok4 import Storage
 from rok4_tools.global_utils.source import SourceRasterPyramids
 

@@ -9,7 +9,8 @@ The module contains the following classes:
 
 from typing import Dict, List, Tuple, Union
 
-from rok4.Pyramid import Pyramid, PyramidType
+from rok4.pyramid import Pyramid
+from rok4.enums import PyramidType
 
 
 class Source:

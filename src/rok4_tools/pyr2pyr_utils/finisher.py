@@ -3,7 +3,7 @@ import tempfile
 import logging
 import os
 
-from rok4.Pyramid import Pyramid
+from rok4.pyramid import Pyramid
 from rok4 import Storage
 
 

@@ -3,7 +3,7 @@ import tempfile
 import os
 
 from rok4 import Storage
-from rok4.Pyramid import Pyramid, Level
+from rok4.pyramid import Pyramid, Level
 
 
 def work(config: Dict, split: int) -> None:

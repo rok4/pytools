@@ -1,10 +1,10 @@
-from typing import Dict, List, Tuple, Union
-import tempfile
 import os
+import tempfile
+from typing import Dict, List, Tuple, Union
 
 from rok4 import storage
-from rok4.pyramid import Pyramid, Level
 from rok4.enums import SlabType
+from rok4.pyramid import Level, Pyramid
 
 
 def work(config: Dict, split: int) -> None:
@@ -75,12 +75,12 @@ def work(config: Dict, split: int) -> None:
                 if parts[0] == "c2w":
                     if not multiple_slabs:
                         i = 0
-                        data_file = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".tif")
+                        data_file = tempfile.NamedTemporaryFile(
+                            mode="r", delete=False, suffix=".tif"
+                        )
                         result_value = os.system(f"cache2work -c zip {parts[1]} {data_file.name}")
-                        if result_value != 0 :
-                            raise Exception(
-                                f"cache2work raises an error"
-                            )
+                        if result_value != 0:
+                            raise Exception(f"cache2work raises an error")
                         data = [data_file]
                         mask = [""]
                         multiple_slabs = True
@@ -90,22 +90,22 @@ def work(config: Dict, split: int) -> None:
                             mask_file = tempfile.NamedTemporaryFile(
                                 mode="r", delete=False, suffix=".tif"
                             )
-                            result_value = os.system(f"cache2work -c zip {parts[1]} {mask_file.name}")
-                            if result_value != 0 :
-                                raise Exception(
-                                    f"cache2work raises an error"
-                                )
+                            result_value = os.system(
+                                f"cache2work -c zip {parts[1]} {mask_file.name}"
+                            )
+                            if result_value != 0:
+                                raise Exception(f"cache2work raises an error")
                             mask[i] = mask_file
                         else:
                             i += 1
                             data_file = tempfile.NamedTemporaryFile(
                                 mode="r", delete=False, suffix=".tif"
                             )
-                            result_value = os.system(f"cache2work -c zip {parts[1]} {data_file.name}")
-                            if result_value != 0 :
-                                raise Exception(
-                                    f"cache2work raises an error"
-                                )
+                            result_value = os.system(
+                                f"cache2work -c zip {parts[1]} {data_file.name}"
+                            )
+                            if result_value != 0:
+                                raise Exception(f"cache2work raises an error")
                             data += [data_file]
                             mask += [""]
 
@@ -135,10 +135,8 @@ def work(config: Dict, split: int) -> None:
                     result_value = os.system(
                         f"overlayNtiff -f {fichier.name} -m TOP -b {raster_specifications['nodata']} -c zip -s {raster_specifications['channels']} -p {raster_specifications['photometric']}"
                     )
-                    if result_value != 0 :
-                        raise Exception(
-                            f"overlayNtiff raises an error"
-                        )
+                    if result_value != 0:
+                        raise Exception(f"overlayNtiff raises an error")
                     storage.remove(f"file://{fichier.name}")
                     for i in range(len(data)):
                         storage.remove(f"file://{data[i].name}")
@@ -162,10 +160,8 @@ def work(config: Dict, split: int) -> None:
                         result_value = os.system(
                             f"work2cache -c {compression} -t {tile_width} {tile_heigth} -a {format_channel} -b {bits_channel} -s {raster_specifications['channels']} {result.name} {parts[1]}"
                         )
-                        if result_value != 0 :
-                            raise Exception(
-                                f"work2cache raises an error"
-                            )
+                        if result_value != 0:
+                            raise Exception(f"work2cache raises an error")
                         storage.remove(f"file://{result.name}")
                     elif slab_type == SlabType.MASK:
                         level = pyramid.get_infos_from_slab_path(parts[1])[1]
@@ -174,10 +170,8 @@ def work(config: Dict, split: int) -> None:
                         result_value = os.system(
                             f"work2cache -c zip -t {tile_width} {tile_heigth} -a {format_channel} -b {bits_channel} -s {raster_specifications['channels']} {result_mask.name} {parts[1]}"
                         )
-                        if result_value != 0 :
-                            raise Exception(
-                                f"work2cache raises an error"
-                            )
+                        if result_value != 0:
+                            raise Exception(f"work2cache raises an error")
                         storage.remove(f"file://{result_mask.name}")
 
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait

@@ -1,11 +1,12 @@
-from typing import Dict, List, Tuple, Union
-import tempfile
 import itertools
 import os
+import tempfile
+from typing import Dict, List, Tuple, Union
 
-from rok4.pyramid import Pyramid
-from rok4.enums import SlabType, PyramidType
 from rok4 import storage
+from rok4.enums import PyramidType, SlabType
+from rok4.pyramid import Pyramid
+
 from rok4_tools.global_utils.source import SourcePyramids
 
 
@@ -58,17 +59,18 @@ def work(config: Dict) -> None:
             raise Exception(
                 f"Sources pyramids cannot have two different numbers of channels : {channels_reference} and {sources.channels}"
             )
-        
+
         # Vérification du type des pyramides
         if sources.type != PyramidType.RASTER:
-            raise Exception(
-                f"Some sources pyramids are not a raster"
-            )
+            raise Exception(f"Some sources pyramids are not a raster")
 
         datasources += [sources]
 
     # Chargement de la pyramide à écrire
-    storage_pyramid = {"type": datasources[0].pyramids[0].storage_type, "root": config["pyramid"]["root"]}
+    storage_pyramid = {
+        "type": datasources[0].pyramids[0].storage_type,
+        "root": config["pyramid"]["root"],
+    }
     try:
         to_pyramid = Pyramid.from_other(
             datasources[0].pyramids[0],
@@ -109,7 +111,7 @@ def work(config: Dict) -> None:
 
     for sources in datasources:
         from_pyramids = sources.pyramids
-        levels = from_pyramids[0].get_levels(sources.bottom,sources.top)
+        levels = from_pyramids[0].get_levels(sources.bottom, sources.top)
         for level in levels:
             # Vérification que plusieurs datasources ne définissent pas un même niveau
             if level.id not in level_finish:
@@ -225,7 +227,9 @@ def work(config: Dict) -> None:
                         )
                         if config["pyramid"]["mask"]:
                             if mask[0] != "":
-                                next(round_robin).write(f"link {to_slab_path_mask} {mask[0]} {root_index}\n")
+                                next(round_robin).write(
+                                    f"link {to_slab_path_mask} {mask[0]} {root_index}\n"
+                                )
                     else:
                         command = ""
                         for j in range(len(process)):

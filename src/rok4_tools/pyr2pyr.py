@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
-import sys
 import argparse
+import json
 import logging
 import os
-import json
-from jsonschema import validate, ValidationError
-import jsonschema.validators
+import sys
 from json.decoder import JSONDecodeError
 
+import jsonschema.validators
+from jsonschema import ValidationError, validate
+from rok4 import storage
+
 from rok4_tools import __version__
-from rok4_tools.pyr2pyr_utils.master import work as master_work
 from rok4_tools.pyr2pyr_utils.agent import work as agent_work
 from rok4_tools.pyr2pyr_utils.finisher import work as finisher_work
-
-from rok4 import storage
+from rok4_tools.pyr2pyr_utils.master import work as master_work
 
 # Default logger
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.WARNING)

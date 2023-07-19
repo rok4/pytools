@@ -8,8 +8,8 @@ The module contains the following classes:
 
 from typing import Dict, List, Tuple, Union
 
-from rok4.pyramid import Pyramid
 from rok4.enums import PyramidType
+from rok4.pyramid import Pyramid
 
 
 class Source:
@@ -84,7 +84,7 @@ class SourcePyramids(Source):
                     raise Exception(
                         f"Sources pyramids cannot have two different format : {self.__format} and {pyramid.format}"
                     )
-            
+
             # Vérification de l'unicité du type des pyramides sources
             if self.__type is None:
                 self.__type = pyramid.type
@@ -98,26 +98,28 @@ class SourcePyramids(Source):
                 if pyramid.type == PyramidType.RASTER:
                     if self.__channels != pyramid.channels:
                         raise Exception(
-                        f"Sources pyramids cannot have two different numbers of channels : {self.__channels} and {pyramid.channels}"
-                    )
+                            f"Sources pyramids cannot have two different numbers of channels : {self.__channels} and {pyramid.channels}"
+                        )
 
             # Vérification de la présence des niveaux
             try:
                 levels = pyramid.get_levels(bottom, top)
             except Exception as e:
                 raise Exception(f"All levels between {bottom} -> {top} are not in {pyramid.name}")
-            
+
             # Vérification de l'unicité de la taille des dalles par niveau
-            for level in levels :
-                if level.id in width_slabs :
-                    if width_slabs[level.id] != level.slab_width or height_slabs[level.id] != level.slab_height :
-                       raise Exception(
-                        f"The number of tiles by slab is different between {pyramid.name} and {self.__pyramids[0].name} at level {level.id}"
-                    ) 
-                else :
+            for level in levels:
+                if level.id in width_slabs:
+                    if (
+                        width_slabs[level.id] != level.slab_width
+                        or height_slabs[level.id] != level.slab_height
+                    ):
+                        raise Exception(
+                            f"The number of tiles by slab is different between {pyramid.name} and {self.__pyramids[0].name} at level {level.id}"
+                        )
+                else:
                     width_slabs[level.id] = level.slab_width
                     height_slabs[level.id] = level.slab_height
-
 
     @property
     def tms(self) -> str:
@@ -130,11 +132,11 @@ class SourcePyramids(Source):
     @property
     def pyramids(self) -> List[Pyramid]:
         return self.__pyramids
-    
+
     @property
     def type(self) -> PyramidType:
         return self.__type
-    
+
     @property
     def channels(self) -> int:
         """Get the number of channels for RASTER sources
@@ -145,7 +147,7 @@ class SourcePyramids(Source):
         return self.__channels
 
     def info_level(self, id_level: str) -> Tuple[int, int, Dict[str, int]]:
-        """ Calculate informations from a level from the level's informations of each pyramid of the datasource
+        """Calculate informations from a level from the level's informations of each pyramid of the datasource
 
         Args:
             id_level (str) : name of the level

@@ -1,10 +1,11 @@
-from typing import Dict, List, Tuple, Union
-import tempfile
-import os
 import logging
+import os
+import tempfile
+from typing import Dict, List, Tuple, Union
 
-from rok4.pyramid import Pyramid
 from rok4 import storage
+from rok4.pyramid import Pyramid
+
 from rok4_tools.global_utils.source import SourcePyramids
 
 
@@ -33,7 +34,10 @@ def work(config: Dict) -> None:
         datasources.append(sources)
 
     # Chargement de la pyramide à écrire
-    storage_pyramid = {"type": datasources[0].pyramids[0].storage_type, "root": config["pyramid"]["root"]}
+    storage_pyramid = {
+        "type": datasources[0].pyramids[0].storage_type,
+        "root": config["pyramid"]["root"],
+    }
     try:
         to_pyramid = Pyramid.from_other(
             datasources[0].pyramids[0],
@@ -48,7 +52,7 @@ def work(config: Dict) -> None:
 
     for sources in datasources:
         from_pyramids = sources.pyramids
-        levels = from_pyramids[0].get_levels(sources.bottom,sources.top)
+        levels = from_pyramids[0].get_levels(sources.bottom, sources.top)
         for level in levels:
             try:
                 to_pyramid.delete_level(level.id)

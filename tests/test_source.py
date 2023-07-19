@@ -1,11 +1,11 @@
-from rok4_tools.global_utils.source import *
-from rok4.enums import PyramidType
+import os
+from unittest import mock
+from unittest.mock import *
 
 import pytest
-import os
+from rok4.enums import PyramidType
 
-from unittest.mock import *
-from unittest import mock
+from rok4_tools.global_utils.source import *
 
 
 def test_init_source():

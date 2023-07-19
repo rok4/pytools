@@ -1,10 +1,10 @@
-from typing import Dict, List, Tuple, Union
-import tempfile
 import logging
 import os
+import tempfile
+from typing import Dict, List, Tuple, Union
 
-from rok4.pyramid import Pyramid
 from rok4 import storage
+from rok4.pyramid import Pyramid
 
 
 def work(config: Dict, split: int) -> None:

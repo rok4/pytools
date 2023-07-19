@@ -5,8 +5,8 @@ import argparse
 import logging
 import os
 
-from rok4.Pyramid import Pyramid
-from rok4.Layer import Layer
+from rok4.pyramid import Pyramid
+from rok4.layer import Layer
 
 from rok4_tools import __version__
 

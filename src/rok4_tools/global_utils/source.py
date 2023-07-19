@@ -4,12 +4,11 @@ The module contains the following classes:
 
 - `Source` - Source objects
 - `SourcePyramids` - Load pyramids
-- `SourceRasterPyramids` - Load raster pyramids
 """
 
 from typing import Dict, List, Tuple, Union
 
-from rok4.Pyramid import Pyramid, PyramidType
+from rok4.pyramid import Pyramid, PyramidType
 
 
 class Source:
@@ -40,6 +39,8 @@ class SourcePyramids(Source):
         __tms (TileMatrxSet): Tile Matrix Set of the sources
         __format (str): Format of the sources
         __pyramids (List[Pyramid]): List of the loaded pyramid sources
+        __type (PyramidType) : Type of the sources
+        __channels (int) : If raster pyramid, number of channels of the sources
     """
 
     def __init__(self, bottom: str, top: str, descriptors: List[str]) -> None:
@@ -48,6 +49,10 @@ class SourcePyramids(Source):
         self.__tms = None
         self.__format = None
         self.__pyramids = []
+        self.__type = None
+
+        width_slabs = {}
+        height_slabs = {}
 
         for d in descriptors:
             # Chargement de la pyramide source
@@ -64,7 +69,7 @@ class SourcePyramids(Source):
             except Exception as e:
                 raise Exception(f"Cannot load source pyramid descriptor : {d} : {e}")
 
-            # Vérification de l'unicité du des caractéristiques des pyramides
+            # Vérification de l'unicité des caractéristiques des pyramides
             if self.__format is None:
                 self.__tms = pyramid.tms
                 self.__format = pyramid.format
@@ -78,12 +83,40 @@ class SourcePyramids(Source):
                     raise Exception(
                         f"Sources pyramids cannot have two different format : {self.__format} and {pyramid.format}"
                     )
+            
+            # Vérification de l'unicité du type des pyramides sources
+            if self.__type is None:
+                self.__type = pyramid.type
+                if pyramid.type == PyramidType.RASTER:
+                    self.__channels = pyramid.channels
+            else:
+                if self.__type != pyramid.type:
+                    raise Exception(
+                        f"Sources pyramids cannot be of two types different : {self.__type} and {self.__type}"
+                    )
+                if pyramid.type == PyramidType.RASTER:
+                    if self.__channels != pyramid.channels:
+                        raise Exception(
+                        f"Sources pyramids cannot have two different numbers of channels : {self.__channels} and {pyramid.channels}"
+                    )
 
             # Vérification de la présence des niveaux
             try:
-                level = pyramid.get_levels(bottom, top)
+                levels = pyramid.get_levels(bottom, top)
             except Exception as e:
                 raise Exception(f"All levels between {bottom} -> {top} are not in {pyramid.name}")
+            
+            # Vérification de l'unicité de la taille des dalles par niveau
+            for level in levels :
+                if level.id in width_slabs :
+                    if width_slabs[level.id] != level.slab_width or height_slabs[level.id] != level.slab_height :
+                       raise Exception(
+                        f"The number of tiles by slab is different between {pyramid.name} and {self.__pyramids[0].name} at level {level.id}"
+                    ) 
+                else :
+                    width_slabs[level.id] = level.slab_width
+                    height_slabs[level.id] = level.slab_height
+
 
     @property
     def tms(self) -> str:
@@ -96,8 +129,29 @@ class SourcePyramids(Source):
     @property
     def pyramids(self) -> List[Pyramid]:
         return self.__pyramids
+    
+    @property
+    def type(self) -> PyramidType:
+        return self.__type
+    
+    @property
+    def channels(self) -> int:
+        """Get the number of channels for RASTER sources
+
+        Returns:
+            int: Number of channels, None if VECTOR sources
+        """
+        return self.__channels
 
     def info_level(self, id_level: str) -> Tuple[int, int, Dict[str, int]]:
+        """ Calculate informations from a level from the level's informations of each pyramid of the datasource
+
+        Args:
+            id_level (str) : name of the level
+
+        Returns:
+            Tuple[int, int, Dict[str, int]] : slab's width of the level, slab's height of the level and terrain extent in TMS coordinates system
+        """
         slab_width = None
         slab_height = None
         tile_limits = None
@@ -106,10 +160,6 @@ class SourcePyramids(Source):
             level = pyramid.get_level(id_level)
             tile_limits_level = level.tile_limits
             if slab_width != None:
-                if level.slab_width != slab_width or level.slab_height != slab_height:
-                    raise Exception(
-                        f"The number of tiles by slab is different between {pyramid.name} and {pyramids[0].name} at level {id_level}"
-                    )
                 if tile_limits_level["min_row"] < tile_limits["min_row"]:
                     tile_limits["min_row"] = tile_limits_level["min_row"]
                 if tile_limits_level["min_col"] < tile_limits["min_col"]:
@@ -124,32 +174,3 @@ class SourcePyramids(Source):
                 tile_limits = tile_limits_level
 
         return (slab_width, slab_height, tile_limits)
-
-
-class SourceRasterPyramids(SourcePyramids):
-    """Raster pyramid sources to load to create a new pyramid
-
-    Attributes:
-        __channels (int): Number of channels of the sources
-    """
-
-    def __init__(self, bottom: str, top: str, descriptors: List[str]) -> None:
-        SourcePyramids.__init__(self, bottom, top, descriptors)
-        pyramids = self.pyramids
-        for i in range(len(pyramids)):
-            # Vérification que les pyramides soient bien des rasters
-            if pyramids[i].type != PyramidType.RASTER:
-                raise Exception(f"Source pyramid {pyramids[i].name} is not a raster")
-
-            # Vérification de l'unicité du nombre de canaux
-            if i == 0:
-                self.__channels = pyramids[i].channels
-            else:
-                if self.__channels != pyramids[i].channels:
-                    raise Exception(
-                        f"Sources pyramids cannot have two different numbers of channels : {self.__channels} and {pyramids.channels}"
-                    )
-
-    @property
-    def channels(self) -> int:
-        return self.__channels

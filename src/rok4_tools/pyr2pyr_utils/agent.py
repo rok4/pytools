@@ -3,8 +3,8 @@ import tempfile
 import logging
 import os
 
-from rok4.Pyramid import Pyramid
-from rok4 import Storage
+from rok4.pyramid import Pyramid
+from rok4 import storage
 
 
 def work(config: Dict, split: int) -> None:
@@ -23,14 +23,14 @@ def work(config: Dict, split: int) -> None:
     Raises:
         Exception: Cannot get todo list
         Exception: Invalid todo list line
-        StorageError: Slab copy issue
+        storageError: Slab copy issue
         MissingEnvironmentError: Missing object storage informations
     """
 
     # On récupère la todo list sous forme de fichier temporaire
     try:
         todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
-        Storage.copy(
+        storage.copy(
             os.path.join(config["process"]["directory"], f"todo.{split}.list"),
             f"file://{todo_list_obj.name}",
         )
@@ -42,8 +42,8 @@ def work(config: Dict, split: int) -> None:
     last_done_fo = os.path.join(config["process"]["directory"], f"slab.{split}.last")
 
     try:
-        if Storage.exists(last_done_fo):
-            last_done_slab = Storage.get_data_str(last_done_fo)
+        if storage.exists(last_done_fo):
+            last_done_slab = storage.get_data_str(last_done_fo)
             logging.debug(
                 f"The last done slab file exists, last slab to have been copied is {last_done_slab}"
             )
@@ -69,15 +69,15 @@ def work(config: Dict, split: int) -> None:
             if len(parts) == 4:
                 slab_md5 = parts[3]
 
-            Storage.copy(parts[1], parts[2], slab_md5)
+            storage.copy(parts[1], parts[2], slab_md5)
             last_done_slab = parts[2]
 
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait
         todo_list_obj.close()
-        Storage.remove(f"file://{todo_list_obj.name}")
-        Storage.remove(last_done_fo)
+        storage.remove(f"file://{todo_list_obj.name}")
+        storage.remove(last_done_fo)
 
     except Exception as e:
         if last_done_slab is not None:
-            Storage.put_data_str(last_done_slab, last_done_fo)
+            storage.put_data_str(last_done_slab, last_done_fo)
         raise Exception(f"Cannot process the todo list: {e}")

@@ -3,9 +3,9 @@ import tempfile
 import os
 import logging
 
-from rok4.Pyramid import Pyramid
-from rok4 import Storage
-from rok4_tools.global_utils.source import SourceRasterPyramids
+from rok4.pyramid import Pyramid
+from rok4 import storage
+from rok4_tools.global_utils.source import SourcePyramids
 
 
 def work(config: Dict) -> None:
@@ -19,11 +19,13 @@ def work(config: Dict) -> None:
 
     Raises:
         Exception: Cannot load the input or output pyramid
+        Exception: Cannot write output pyramid's descriptor
+        Exception: Cannot concatenate splits' done lists and write the final output pyramid's list to the final location
     """
 
     datasources = []
     for i in range(len(config["datasources"])):
-        sources = SourceRasterPyramids(
+        sources = SourcePyramids(
             config["datasources"][i]["bottom"],
             config["datasources"][i]["top"],
             config["datasources"][i]["source"]["descriptors"],
@@ -31,12 +33,12 @@ def work(config: Dict) -> None:
         datasources.append(sources)
 
     # Chargement de la pyramide à écrire
-    storage = {"type": datasources[0].pyramids[0].storage_type, "root": config["pyramid"]["root"]}
+    storage_pyramid = {"type": datasources[0].pyramids[0].storage_type, "root": config["pyramid"]["root"]}
     try:
         to_pyramid = Pyramid.from_other(
             datasources[0].pyramids[0],
             config["pyramid"]["name"],
-            storage,
+            storage_pyramid,
             mask=config["pyramid"]["mask"],
         )
     except Exception as e:
@@ -45,13 +47,15 @@ def work(config: Dict) -> None:
         )
 
     for sources in datasources:
-        for k in range(int(sources.top), int(sources.bottom) + 1):
+        from_pyramids = sources.pyramids
+        levels = from_pyramids[0].get_levels(sources.bottom,sources.top)
+        for level in levels:
             try:
-                to_pyramid.delete_level(str(k))
+                to_pyramid.delete_level(level.id)
             except:
                 pass
-            info = sources.info_level(str(k))
-            to_pyramid.add_level(str(k), info[0], info[1], info[2])
+            info = sources.info_level(level.id)
+            to_pyramid.add_level(level.id, info[0], info[1], info[2])
 
     try:
         to_pyramid.write_descriptor()
@@ -67,7 +71,7 @@ def work(config: Dict) -> None:
             list_file_obj.write(f"0={to_root}\n")
 
             todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
-            Storage.copy(
+            storage.copy(
                 os.path.join(config["process"]["directory"], f"todo.finisher.list"),
                 f"file://{todo_list_obj.name}",
             )
@@ -80,14 +84,14 @@ def work(config: Dict) -> None:
                 used_pyramids_roots[index] = root
 
             todo_list_obj.close()
-            Storage.remove(f"file://{todo_list_obj.name}")
-            Storage.remove(os.path.join(config["process"]["directory"], f"todo.finisher.list"))
+            storage.remove(f"file://{todo_list_obj.name}")
+            storage.remove(os.path.join(config["process"]["directory"], f"todo.finisher.list"))
 
             list_file_obj.write("#\n")
 
             for i in range(0, config["process"]["parallelization"]):
                 todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
-                Storage.copy(
+                storage.copy(
                     os.path.join(config["process"]["directory"], f"todo.{i+1}.list"),
                     f"file://{todo_list_obj.name}",
                 )
@@ -97,23 +101,23 @@ def work(config: Dict) -> None:
                     parts = line.split(" ")
 
                     if parts[0] == "w2c":
-                        storage_type, path, tray, base_name = Storage.get_infos_from_path(parts[1])
+                        storage_type, path, tray, base_name = storage.get_infos_from_path(parts[1])
                         # La dalle a été recalculée, elle appartient donc à la pyramide de sortie
                         path = path.replace(to_root, "0")
                         list_file_obj.write(f"{path}\n")
 
                     elif parts[0] == "link":
-                        storage_type, path, tray, base_name = Storage.get_infos_from_path(parts[2])
+                        storage_type, path, tray, base_name = storage.get_infos_from_path(parts[2])
                         # On a fait un lien, on met donc dans la liste la racine de la pyramide source
                         path = path.replace(used_pyramids_roots[parts[3]], parts[3])
                         list_file_obj.write(f"{path}\n")
 
                 todo_list_obj.close()
-                Storage.remove(f"file://{todo_list_obj.name}")
-                Storage.remove(os.path.join(config["process"]["directory"], f"todo.{i+1}.list"))
+                storage.remove(f"file://{todo_list_obj.name}")
+                storage.remove(os.path.join(config["process"]["directory"], f"todo.{i+1}.list"))
 
-        Storage.copy(f"file://{list_file_tmp}", to_pyramid.list)
-        Storage.remove(f"file://{list_file_tmp}")
+        storage.copy(f"file://{list_file_tmp}", to_pyramid.list)
+        storage.remove(f"file://{list_file_tmp}")
 
     except Exception as e:
         raise Exception(

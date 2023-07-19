@@ -4,8 +4,8 @@ import itertools
 import logging
 import os
 
-from rok4.Pyramid import Pyramid
-from rok4 import Storage
+from rok4.pyramid import Pyramid
+from rok4 import storage
 
 
 def work(config: Dict) -> None:
@@ -19,7 +19,7 @@ def work(config: Dict) -> None:
     Raises:
         Exception: Cannot load the input or the output pyramid
         Exception: Cannot write temporary todo lists
-        StorageError: Cannot read source pyramid list
+        storageError: Cannot read source pyramid list
         MissingEnvironmentError: Missing object storage informations
     """
 
@@ -55,14 +55,13 @@ def work(config: Dict) -> None:
         if infos["link"] and not config["process"]["follow_links"]:
             # On ne veut pas traiter les dalles symboliques, et c'en est une
             continue
-
-        from_slab_path = Storage.get_path_from_infos(
+        from_slab_path = storage.get_path_from_infos(
             from_pyramid.storage_type, infos["root"], infos["slab"]
         )
 
         if (
             config["process"]["slab_limit"] != 0
-            and Storage.get_size(from_slab_path) < config["process"]["slab_limit"]
+            and storage.get_size(from_slab_path) < config["process"]["slab_limit"]
         ):
             logging.debug(f"Slab {from_slab_path} too small, skip it")
             continue
@@ -79,11 +78,11 @@ def work(config: Dict) -> None:
         for i in range(0, config["process"]["parallelization"]):
             tmp = file_objects[i]
             tmp.close()
-            Storage.copy(
+            storage.copy(
                 f"file://{tmp.name}",
                 os.path.join(config["process"]["directory"], f"todo.{i+1}.list"),
             )
-            Storage.remove(f"file://{tmp.name}")
+            storage.remove(f"file://{tmp.name}")
 
     except Exception as e:
         raise Exception(f"Cannot copy todo lists to final location and clean: {e}")

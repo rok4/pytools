@@ -14,7 +14,7 @@ from rok4_tools.pyr2pyr_utils.master import work as master_work
 from rok4_tools.pyr2pyr_utils.agent import work as agent_work
 from rok4_tools.pyr2pyr_utils.finisher import work as finisher_work
 
-from rok4 import Storage
+from rok4 import storage
 
 # Default logger
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.WARNING)
@@ -88,7 +88,7 @@ def configuration() -> None:
         JSONDecodeError: Configuration is not a valid JSON file
         ValidationError: Configuration is not a valid PYR2PYR configuration file
         MissingEnvironmentError: Missing object storage informations
-        StorageError: Storage read issue
+        storageError: storage read issue
         FileNotFoundError: File or object does not exist
     """
 
@@ -100,7 +100,7 @@ def configuration() -> None:
     f.close()
 
     # Chargement et validation de la configuration JSON
-    config = json.loads(Storage.get_data_str(args.configuration))
+    config = json.loads(storage.get_data_str(args.configuration))
     validate(config, schema)
 
     # Valeurs par défaut et cohérence avec l'appel

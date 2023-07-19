@@ -3,8 +3,8 @@ import tempfile
 import logging
 import os
 
-from rok4.Pyramid import Pyramid
-from rok4 import Storage
+from rok4.pyramid import Pyramid
+from rok4 import storage
 
 
 def work(config: Dict) -> None:
@@ -58,7 +58,7 @@ def work(config: Dict) -> None:
 
             for i in range(0, config["process"]["parallelization"]):
                 todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
-                Storage.copy(
+                storage.copy(
                     os.path.join(config["process"]["directory"], f"todo.{i+1}.list"),
                     f"file://{todo_list_obj.name}",
                 )
@@ -72,16 +72,16 @@ def work(config: Dict) -> None:
                             f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}"
                         )
 
-                    storage_type, path, tray, base_name = Storage.get_infos_from_path(parts[2])
+                    storage_type, path, tray, base_name = storage.get_infos_from_path(parts[2])
                     path = path.replace(to_root, "0")
                     list_file_obj.write(f"{path}\n")
 
                 todo_list_obj.close()
-                Storage.remove(f"file://{todo_list_obj.name}")
-                Storage.remove(os.path.join(config["process"]["directory"], f"todo.{i+1}.list"))
+                storage.remove(f"file://{todo_list_obj.name}")
+                storage.remove(os.path.join(config["process"]["directory"], f"todo.{i+1}.list"))
 
-        Storage.copy(f"file://{list_file_tmp}", to_pyramid.list)
-        Storage.remove(f"file://{list_file_tmp}")
+        storage.copy(f"file://{list_file_tmp}", to_pyramid.list)
+        storage.remove(f"file://{list_file_tmp}")
 
     except Exception as e:
         raise Exception(

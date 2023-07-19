@@ -3,9 +3,9 @@ import tempfile
 import itertools
 import os
 
-from rok4.Pyramid import Pyramid, SlabType
-from rok4 import Storage
-from rok4_tools.global_utils.source import SourceRasterPyramids
+from rok4.pyramid import Pyramid, SlabType, PyramidType
+from rok4 import storage
+from rok4_tools.global_utils.source import SourcePyramids
 
 
 def work(config: Dict) -> None:
@@ -19,6 +19,9 @@ def work(config: Dict) -> None:
     Raises:
         Exception: Cannot load the input or the output pyramid
         Exception: S3 cluster host have not to be provided into bucket names (output or inputs)
+        Exception: Sources pyramid have different features
+        Exception: Cannot open stream to write todo lists
+        Exception: Cannot copy todo lists
     """
 
     datasources = []
@@ -26,7 +29,7 @@ def work(config: Dict) -> None:
     format_reference = None
     channels_reference = None
     for i in range(len(config["datasources"])):
-        sources = SourceRasterPyramids(
+        sources = SourcePyramids(
             config["datasources"][i]["bottom"],
             config["datasources"][i]["top"],
             config["datasources"][i]["source"]["descriptors"],
@@ -34,7 +37,7 @@ def work(config: Dict) -> None:
         # Vérification de l'unicité du TMS
         if not tms_reference:
             tms_reference = sources.tms
-        elif tms_reference != sources.tms:
+        elif tms_reference.name != sources.tms.name:
             raise Exception(
                 f"Sources pyramids cannot have two different TMS : {tms_reference} and {sources.tms}"
             )
@@ -54,16 +57,22 @@ def work(config: Dict) -> None:
             raise Exception(
                 f"Sources pyramids cannot have two different numbers of channels : {channels_reference} and {sources.channels}"
             )
+        
+        # Vérification du type des pyramides
+        if sources.type != PyramidType.RASTER:
+            raise Exception(
+                f"Some sources pyramids are not a raster"
+            )
 
         datasources += [sources]
 
     # Chargement de la pyramide à écrire
-    storage = {"type": datasources[0].pyramids[0].storage_type, "root": config["pyramid"]["root"]}
+    storage_pyramid = {"type": datasources[0].pyramids[0].storage_type, "root": config["pyramid"]["root"]}
     try:
         to_pyramid = Pyramid.from_other(
             datasources[0].pyramids[0],
             config["pyramid"]["name"],
-            storage,
+            storage_pyramid,
             mask=config["pyramid"]["mask"],
         )
     except Exception as e:
@@ -98,32 +107,32 @@ def work(config: Dict) -> None:
     used_pyramids_count = 0
 
     for sources in datasources:
-        for k in range(int(sources.top), int(sources.bottom) + 1):
+        from_pyramids = sources.pyramids
+        levels = from_pyramids[0].get_levels(sources.bottom,sources.top)
+        for level in levels:
             # Vérification que plusieurs datasources ne définissent pas un même niveau
-            if str(k) not in level_finish:
+            if level.id not in level_finish:
                 try:
-                    to_pyramid.delete_level(str(k))
+                    to_pyramid.delete_level(level.id)
                 except:
                     pass
-                info = sources.info_level(str(k))
-                to_pyramid.add_level(str(k), info[0], info[1], info[2])
-                level_finish += [str(k)]
+                info = sources.info_level(level.id)
+                to_pyramid.add_level(level.id, info[0], info[1], info[2])
+                level_finish += [level.id]
             else:
-                raise Exception(f"Different datasources cannot define the same level : {str(k)}")
-
-            from_pyramids = sources.pyramids
+                raise Exception(f"Different datasources cannot define the same level : {level.id}")
 
             for i in range(len(from_pyramids)):
                 # Récupération des dalles de la pyramide
-                slabs = from_pyramids[i].list_generator_level(str(k))
-                slabs_mask = from_pyramids[i].list_generator_level(str(k))
+                slabs = from_pyramids[i].list_generator(level.id)
+                slabs_mask = from_pyramids[i].list_generator(level.id)
                 # Vérification si la dalle à déjà été traitée
                 for slab in slabs:
                     if slab[0] in slab_finish:
                         continue
                     if slab[0][0].name == "MASK":
                         continue
-                    from_slab_path = Storage.get_path_from_infos(
+                    from_slab_path = storage.get_path_from_infos(
                         from_pyramids[i].storage_type, slab[1]["root"], slab[1]["slab"]
                     )
                     process = [from_slab_path]
@@ -140,7 +149,7 @@ def work(config: Dict) -> None:
                         )
                         if slab_mask in slabs_mask:
                             mask = [
-                                Storage.get_path_from_infos(
+                                storage.get_path_from_infos(
                                     from_pyramids[i].storage_type,
                                     slab_mask[1]["root"],
                                     slab_mask[1]["slab"],
@@ -152,11 +161,11 @@ def work(config: Dict) -> None:
                     # Recherche de la dalle dans d'autres pyramides sources
                     if not config["process"]["only_links"]:
                         for j in range(i + 1, len(from_pyramids)):
-                            slabs_other = from_pyramids[j].list_generator_level(str(k))
-                            slabs_other_mask = from_pyramids[j].list_generator_level(str(k))
+                            slabs_other = from_pyramids[j].list_generator(level.id)
+                            slabs_other_mask = from_pyramids[j].list_generator(level.id)
                             for slab_other in slabs_other:
                                 if slab_other[0] == slab[0]:
-                                    from_slab_path_other = Storage.get_path_from_infos(
+                                    from_slab_path_other = storage.get_path_from_infos(
                                         from_pyramids[j].storage_type,
                                         slab_other[1]["root"],
                                         slab_other[1]["slab"],
@@ -183,7 +192,7 @@ def work(config: Dict) -> None:
                                         )
                                         if slab_mask_other in slabs_other_mask:
                                             mask += [
-                                                Storage.get_path_from_infos(
+                                                storage.get_path_from_infos(
                                                     from_pyramids[i].storage_type,
                                                     slab_mask_other[1]["root"],
                                                     slab_mask_other[1]["slab"],
@@ -215,18 +224,18 @@ def work(config: Dict) -> None:
                         )
                         if config["pyramid"]["mask"]:
                             if mask[0] != "":
-                                next(round_robin).write(f"link {to_slab_path_mask} {mask[0]}\n")
+                                next(round_robin).write(f"link {to_slab_path_mask} {mask[0]} {root_index}\n")
                     else:
                         command = ""
                         for j in range(len(process)):
-                            command += f"c2w {process[j]} DATA\n"
+                            command += f"c2w {process[j]}\n"
                             if config["process"]["mask"]:
                                 if mask[j] != "":
-                                    command += f"c2w {mask[j]} MASK\n"
+                                    command += f"c2w {mask[j]}\n"
                         command += "oNt\n"
-                        command += f"w2c {to_slab_path} DATA\n"
+                        command += f"w2c {to_slab_path}\n"
                         if config["pyramid"]["mask"]:
-                            command += f"w2c {to_slab_path_mask} MASK\n"
+                            command += f"w2c {to_slab_path_mask}\n"
                         next(round_robin).write(command)
 
     for root in used_pyramids_roots:
@@ -237,18 +246,18 @@ def work(config: Dict) -> None:
         for i in range(0, config["process"]["parallelization"]):
             tmp = temp_agent_todos[i]
             tmp.close()
-            Storage.copy(
+            storage.copy(
                 f"file://{tmp.name}",
                 os.path.join(config["process"]["directory"], f"todo.{i+1}.list"),
             )
-            Storage.remove(f"file://{tmp.name}")
+            storage.remove(f"file://{tmp.name}")
 
         temp_finisher_todo.close()
-        Storage.copy(
+        storage.copy(
             f"file://{temp_finisher_todo.name}",
             os.path.join(config["process"]["directory"], f"todo.finisher.list"),
         )
-        Storage.remove(f"file://{temp_finisher_todo.name}")
+        storage.remove(f"file://{temp_finisher_todo.name}")
 
     except Exception as e:
         raise Exception(f"Cannot copy todo lists to final location and clean: {e}")

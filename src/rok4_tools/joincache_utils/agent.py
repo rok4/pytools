@@ -2,8 +2,8 @@ from typing import Dict, List, Tuple, Union
 import tempfile
 import os
 
-from rok4 import Storage
-from rok4.Pyramid import Pyramid, Level
+from rok4 import storage
+from rok4.pyramid import Pyramid, Level, SlabType
 
 
 def work(config: Dict, split: int) -> None:
@@ -20,12 +20,15 @@ def work(config: Dict, split: int) -> None:
 
     Raises:
         Exception: Cannot get todo list
+        Exception: Cannot load the input or output pyramid
+        Exception: Cannot process todo lists
+        Exception: System command raises an error
     """
 
     # On récupère la todo list sous forme de fichier temporaire
     try:
         todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
-        Storage.copy(
+        storage.copy(
             os.path.join(config["process"]["directory"], f"todo.{split}.list"),
             f"file://{todo_list_obj.name}",
         )
@@ -45,13 +48,13 @@ def work(config: Dict, split: int) -> None:
         format = pyramid.format
         compression = format.split("_")[1].lower()
         if "UINT" in format:
-            format_canal = "uint"
+            format_channel = "uint"
         elif "FLOAT" in format:
-            format_canal = "float"
+            format_channel = "float"
         if "8" in format:
-            bits_canal = "8"
+            bits_channel = "8"
         elif "32" in format:
-            bits_canal = "32"
+            bits_channel = "32"
 
         multiple_slabs = False
         with open(todo_list_obj.name) as file:
@@ -60,99 +63,125 @@ def work(config: Dict, split: int) -> None:
                 parts = line.split(" ")
 
                 if parts[0] == "link":
-                    to_tray = Storage.get_infos_from_path(parts[1])[2]
+                    to_tray = storage.get_infos_from_path(parts[1])[2]
                     if to_tray != "":
                         os.makedirs(to_tray, exist_ok=True)
 
-                    if Storage.exists(parts[1]):
-                        Storage.remove(parts[1])
-                    Storage.link(parts[2], parts[1])
+                    if storage.exists(parts[1]):
+                        storage.remove(parts[1])
+                    storage.link(parts[2], parts[1])
 
                 if parts[0] == "c2w":
                     if not multiple_slabs:
                         i = 0
-                        image = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".tif")
-                        os.system(f"cache2work -c zip {parts[1]} {image.name}")
-                        data = [image]
+                        data_file = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".tif")
+                        result_value = os.system(f"cache2work -c zip {parts[1]} {data_file.name}")
+                        if result_value != 0 :
+                            raise Exception(
+                                f"cache2work raises an error"
+                            )
+                        data = [data_file]
                         mask = [""]
                         multiple_slabs = True
                     else:
-                        if parts[2] == "MASK":
+                        slab_type = pyramid.get_infos_from_slab_path(parts[1])[0]
+                        if slab_type == SlabType.MASK:
                             mask_file = tempfile.NamedTemporaryFile(
                                 mode="r", delete=False, suffix=".tif"
                             )
-                            os.system(f"cache2work -c zip {parts[1]} {mask_file.name}")
+                            result_value = os.system(f"cache2work -c zip {parts[1]} {mask_file.name}")
+                            if result_value != 0 :
+                                raise Exception(
+                                    f"cache2work raises an error"
+                                )
                             mask[i] = mask_file
                         else:
                             i += 1
-                            image = tempfile.NamedTemporaryFile(
+                            data_file = tempfile.NamedTemporaryFile(
                                 mode="r", delete=False, suffix=".tif"
                             )
-                            os.system(f"cache2work -c zip {parts[1]} {image.name}")
-                            data += [image]
+                            result_value = os.system(f"cache2work -c zip {parts[1]} {data_file.name}")
+                            if result_value != 0 :
+                                raise Exception(
+                                    f"cache2work raises an error"
+                                )
+                            data += [data_file]
                             mask += [""]
 
                 if parts[0] == "oNt":
-                    resultat = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".tif")
-                    fichierNtiff = f"{resultat.name}"
+                    result = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".tif")
+                    file_tiff = f"{result.name}"
                     if config["pyramid"]["mask"]:
-                        resultat_mask = tempfile.NamedTemporaryFile(
+                        result_mask = tempfile.NamedTemporaryFile(
                             mode="r", delete=False, suffix=".tif"
                         )
-                        fichierNtiff += f" {resultat_mask.name}\n"
+                        file_tiff += f" {result_mask.name}\n"
                     else:
-                        fichierNtiff += "\n"
+                        file_tiff += "\n"
                     for i in range(len(data) - 1, -1, -1):
-                        fichierNtiff += f"{data[i].name}"
+                        file_tiff += f"{data[i].name}"
                         if mask[i] != "":
                             if i == 0:
-                                fichierNtiff += f" {mask[i].name}"
+                                file_tiff += f" {mask[i].name}"
                             else:
-                                fichierNtiff += f" {mask[i].name}\n"
+                                file_tiff += f" {mask[i].name}\n"
                         else:
                             if i != 0:
-                                fichierNtiff += "\n"
+                                file_tiff += "\n"
                     fichier = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".txt")
                     with open(fichier.name, "w") as f:
-                        f.write(fichierNtiff)
-                    os.system(
+                        f.write(file_tiff)
+                    result_value = os.system(
                         f"overlayNtiff -f {fichier.name} -m TOP -b {raster_specifications['nodata']} -c zip -s {raster_specifications['channels']} -p {raster_specifications['photometric']}"
                     )
-                    Storage.remove(f"file://{fichier.name}")
+                    if result_value != 0 :
+                        raise Exception(
+                            f"overlayNtiff raises an error"
+                        )
+                    storage.remove(f"file://{fichier.name}")
                     for i in range(len(data)):
-                        Storage.remove(f"file://{data[i].name}")
+                        storage.remove(f"file://{data[i].name}")
                         pass
                     for i in range(len(mask)):
                         if mask[i] != "":
                             pass
-                            Storage.remove(f"file://{mask[i].name}")
+                            storage.remove(f"file://{mask[i].name}")
                     multiple_slabs = False
 
                 if parts[0] == "w2c":
-                    to_tray = Storage.get_infos_from_path(parts[1])[2]
+                    to_tray = storage.get_infos_from_path(parts[1])[2]
                     if to_tray != "":
                         os.makedirs(to_tray, exist_ok=True)
 
-                    if parts[2] == "DATA":
+                    slab_type = pyramid.get_infos_from_slab_path(parts[1])[0]
+                    if slab_type == SlabType.DATA:
                         level = pyramid.get_infos_from_slab_path(parts[1])[1]
                         tile_width = pyramid.tms.get_level(level).tile_width
                         tile_heigth = pyramid.tms.get_level(level).tile_heigth
-                        os.system(
-                            f"work2cache -c {compression} -t {tile_width} {tile_heigth} -a {format_canal} -b {bits_canal} -s {raster_specifications['channels']} {resultat.name} {parts[1]}"
+                        result_value = os.system(
+                            f"work2cache -c {compression} -t {tile_width} {tile_heigth} -a {format_channel} -b {bits_channel} -s {raster_specifications['channels']} {result.name} {parts[1]}"
                         )
-                        Storage.remove(f"file://{resultat.name}")
-                    elif parts[2] == "MASK":
+                        if result_value != 0 :
+                            raise Exception(
+                                f"work2cache raises an error"
+                            )
+                        storage.remove(f"file://{result.name}")
+                    elif slab_type == SlabType.MASK:
                         level = pyramid.get_infos_from_slab_path(parts[1])[1]
                         tile_width = pyramid.tms.get_level(level).tile_width
                         tile_heigth = pyramid.tms.get_level(level).tile_heigth
-                        os.system(
-                            f"work2cache -c zip -t {tile_width} {tile_heigth} -a {format_canal} -b {bits_canal} -s {raster_specifications['channels']} {resultat_mask.name} {parts[1]}"
+                        result_value = os.system(
+                            f"work2cache -c zip -t {tile_width} {tile_heigth} -a {format_channel} -b {bits_channel} -s {raster_specifications['channels']} {result_mask.name} {parts[1]}"
                         )
-                        Storage.remove(f"file://{resultat_mask.name}")
+                        if result_value != 0 :
+                            raise Exception(
+                                f"work2cache raises an error"
+                            )
+                        storage.remove(f"file://{result_mask.name}")
 
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait
         todo_list_obj.close()
-        Storage.remove(f"file://{todo_list_obj.name}")
+        storage.remove(f"file://{todo_list_obj.name}")
 
     except Exception as e:
         raise Exception(f"Cannot process the todo list: {e}")

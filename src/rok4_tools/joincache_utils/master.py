@@ -3,7 +3,8 @@ import tempfile
 import itertools
 import os
 
-from rok4.pyramid import Pyramid, SlabType, PyramidType
+from rok4.pyramid import Pyramid
+from rok4.enums import SlabType, PyramidType
 from rok4 import storage
 from rok4_tools.global_utils.source import SourcePyramids
 

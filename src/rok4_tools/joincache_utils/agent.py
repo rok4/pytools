@@ -3,7 +3,8 @@ import tempfile
 import os
 
 from rok4 import storage
-from rok4.pyramid import Pyramid, Level, SlabType
+from rok4.pyramid import Pyramid, Level
+from rok4.enums import SlabType
 
 
 def work(config: Dict, split: int) -> None:

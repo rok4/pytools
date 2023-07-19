@@ -1,5 +1,5 @@
 from rok4_tools.global_utils.source import *
-from rok4.Pyramid import PyramidType
+from rok4.enums import PyramidType
 
 import pytest
 import os
@@ -17,7 +17,7 @@ def test_init_source():
         assert False, f"Source creation raises an exception: {exc}"
 
 
-@mock.patch("rok4.Layer.Pyramid.from_descriptor")
+@mock.patch("rok4.layer.Pyramid.from_descriptor")
 def test_init_sourcepyramids(mocked_pyramid_class):
     tms_instance = MagicMock()
     tms_instance.srs = "EPSG:3857"
@@ -83,7 +83,7 @@ def test_init_sourcepyramids(mocked_pyramid_class):
         assert False, f"Source pyramids creation raises an exception: {exc}"
 
 
-@mock.patch("rok4.Layer.Pyramid.from_descriptor")
+@mock.patch("rok4.layer.Pyramid.from_descriptor")
 def test_init_sourcerasterpyramids(mocked_pyramid_class):
     tms_instance = MagicMock()
     tms_instance.srs = "EPSG:3857"

@@ -140,6 +140,7 @@ python3 -m build
 
     ```sh
     python3 -m pip install -e[dev]
+    pre-commit install
     ```
 
 * Consulter les [directives de contribution](./CONTRIBUTING.md)

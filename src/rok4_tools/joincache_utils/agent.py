@@ -64,12 +64,6 @@ def work(config: Dict, split: int) -> None:
                 parts = line.split(" ")
 
                 if parts[0] == "link":
-                    to_tray = storage.get_infos_from_path(parts[1])[2]
-                    if to_tray != "":
-                        os.makedirs(to_tray, exist_ok=True)
-
-                    if storage.exists(parts[1]):
-                        storage.remove(parts[1])
                     storage.link(parts[2], parts[1])
 
                 if parts[0] == "c2w":

@@ -1,0 +1,2 @@
+link s3://path_final/DATA_6_2_1 s3://path/DATA_6_2_1 1
+link s3://path_final/MASK_11_1_1 s3://path2/MASK_11_1_1 2

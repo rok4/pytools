@@ -9,7 +9,7 @@ from json.decoder import JSONDecodeError
 
 import jsonschema.validators
 from jsonschema import ValidationError, validate
-from rok4 import pyramid, storage
+from rok4.storage import get_data_str
 
 from rok4_tools import __version__
 from rok4_tools.joincache_utils.agent import work as agent_work
@@ -88,7 +88,7 @@ def configuration() -> None:
         JSONDecodeError: Configuration is not a valid JSON file
         ValidationError: Configuration is not a valid JOINCACHE configuration file
         MissingEnvironmentError: Missing object storage informations
-        storageError: storage read issue
+        StorageError: Storage read issue
         FileNotFoundError: File or object does not exist
     """
 
@@ -100,7 +100,7 @@ def configuration() -> None:
     f.close()
 
     # Chargement et validation de la configuration JSON
-    config = json.loads(storage.get_data_str(args.configuration))
+    config = json.loads(get_data_str(args.configuration))
     validate(config, schema)
 
     # Valeurs par défaut et cohérence avec l'appel

@@ -63,6 +63,8 @@ def work(config: Dict) -> None:
                     f"file://{todo_list_obj.name}",
                 )
 
+                # On ouvre à nouveau en lecture le fichier pour avoir le contenu après la copie
+                todo_list_obj = open(todo_list_obj.name)
                 for line in todo_list_obj:
                     line = line.rstrip()
                     parts = line.split(" ")

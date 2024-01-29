@@ -46,7 +46,7 @@ def parse() -> None:
 
     parser.add_argument(
         "--name",
-        metavar="my data",
+        metavar="my_data",
         action="store",
         dest="name",
         help="Layer's technical name",

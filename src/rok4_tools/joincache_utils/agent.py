@@ -10,10 +10,12 @@ from rok4.pyramid import Level, Pyramid
 def work(config: Dict, split: int) -> None:
     """Agent steps : make links or merge images
 
-    Expects the configuration, the todo list.
+    Expects the configuration, the todo list and the optionnal last done slab name : if exists, work
+    does not start from the beginning, but after the last copied slab. This file contains only the
+    destination path of the last processed slab.
 
     A line in the todo list is either a slab's copy from pyramid format to work format, or a merge of
-    stacking slabs or a slab's copy from work format to pyramid format
+    stacking slabs or a slab's copy from work format to pyramid format.
 
     Args:
         config (Dict): JOINCACHE configuration
@@ -44,7 +46,18 @@ def work(config: Dict, split: int) -> None:
             f"Cannot load source pyramid descriptor : {config['datasources'][0]['source']['descriptors'][0]} : {e}"
         )
 
+    last_done_slab = None
+    last_done_fo = os.path.join(config["process"]["directory"], f"slab.{split}.last")
+    have_to_work = True
+
     try:
+        if storage.exists(last_done_fo):
+            last_done_slab = storage.get_data_str(last_done_fo)
+            logging.info(
+                f"The last done slab file exists, last slab to have been copied is {last_done_slab}"
+            )
+            have_to_work = False
+
         raster_specifications = pyramid.raster_specifications
         format = pyramid.format
         compression = format.split("_")[1].lower()
@@ -64,9 +77,20 @@ def work(config: Dict, split: int) -> None:
                 parts = line.split(" ")
 
                 if parts[0] == "link":
+                    if not have_to_work:
+                        if parts[1] == last_done_slab:
+                            # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
+                            logging.info(f"Last copied slab reached, copies can start again")
+                            have_to_work = True
+
+                        continue
+
                     storage.link(parts[2], parts[1])
 
                 if parts[0] == "c2w":
+                    if not have_to_work:
+                        continue
+
                     if not multiple_slabs:
                         i = 0
                         data_file = tempfile.NamedTemporaryFile(
@@ -104,6 +128,9 @@ def work(config: Dict, split: int) -> None:
                             mask += [""]
 
                 if parts[0] == "oNt":
+                    if not have_to_work:
+                        continue
+
                     result = tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".tif")
                     file_tiff = f"{result.name}"
                     if config["pyramid"]["mask"]:
@@ -142,6 +169,14 @@ def work(config: Dict, split: int) -> None:
                     multiple_slabs = False
 
                 if parts[0] == "w2c":
+                    if not have_to_work:
+                        if parts[1] == last_done_slab:
+                            # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
+                            logging.info(f"Last copied slab reached, copies can start again")
+                            have_to_work = True
+
+                        continue
+
                     to_tray = storage.get_infos_from_path(parts[1])[2]
                     if to_tray != "":
                         os.makedirs(to_tray, exist_ok=True)
@@ -171,6 +206,9 @@ def work(config: Dict, split: int) -> None:
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait
         todo_list_obj.close()
         storage.remove(f"file://{todo_list_obj.name}")
+        storage.remove(last_done_fo)
 
     except Exception as e:
+        if last_done_slab is not None:
+            storage.put_data_str(last_done_slab, last_done_fo)
         raise Exception(f"Cannot process the todo list: {e}")

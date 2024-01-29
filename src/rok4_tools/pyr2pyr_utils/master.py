@@ -7,6 +7,12 @@ from typing import Dict, List, Tuple, Union
 from rok4 import storage
 from rok4.pyramid import Pyramid
 
+"""Todo list instructions
+
+* cp <source slab> <destination slab> [<md5>] - Make a copy from source to destination. If a MD5 hash is present, it is calculate again afetr copy and have to be equal
+
+"""
+
 
 def work(config: Dict) -> None:
     """Master steps : prepare and split copies to do
@@ -52,9 +58,10 @@ def work(config: Dict) -> None:
     for (slab_type, level, column, row), infos in from_pyramid.list_generator():
         # On traite une dalle
 
-        if infos["link"] and not config["process"]["follow_links"]:
+        if infos["link"] is True and not config["process"]["follow_links"]:
             # On ne veut pas traiter les dalles symboliques, et c'en est une
             continue
+
         from_slab_path = storage.get_path_from_infos(
             from_pyramid.storage_type, infos["root"], infos["slab"]
         )

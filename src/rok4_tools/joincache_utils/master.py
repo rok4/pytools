@@ -9,6 +9,15 @@ from rok4.pyramid import Pyramid
 
 from rok4_tools.global_utils.source import SourcePyramids
 
+"""Todo list instructions
+
+* c2w <source slab> - Convert a source pyramid slab (MASK ro DATA) to work format
+* oNt - Overlay  previous converted data slabs (considering possible masks)
+* w2c <destination slab> - Convert the output of last overlayNtiff to slab format, into the output pyramid
+* link <destination slab> <source slab> <source index> - Make a symbolic slab to source slab. Source index will be used to generate the pyramid's list
+
+"""
+
 
 def work(config: Dict) -> None:
     """Master steps : prepare and split copies and merge to do
@@ -30,11 +39,11 @@ def work(config: Dict) -> None:
     tms_reference = None
     format_reference = None
     channels_reference = None
-    for i in range(len(config["datasources"])):
+    for datasource in config["datasources"]:
         sources = SourcePyramids(
-            config["datasources"][i]["bottom"],
-            config["datasources"][i]["top"],
-            config["datasources"][i]["source"]["descriptors"],
+            datasource["bottom"],
+            datasource["top"],
+            datasource["source"]["descriptors"],
         )
         # Vérification de l'unicité du TMS
         if not tms_reference:

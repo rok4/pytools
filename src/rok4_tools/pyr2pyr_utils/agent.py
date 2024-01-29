@@ -39,14 +39,19 @@ def work(config: Dict, split: int) -> None:
         raise Exception(f"Cannot copy todo lists to final location: {e}")
 
     last_done_slab = None
+    have_to_work = True
     last_done_fo = os.path.join(config["process"]["directory"], f"slab.{split}.last")
 
     try:
         if storage.exists(last_done_fo):
             last_done_slab = storage.get_data_str(last_done_fo)
-            logging.debug(
+            logging.info(
                 f"The last done slab file exists, last slab to have been copied is {last_done_slab}"
             )
+            have_to_work = False
+
+        # On ouvre à nouveau en lecture le fichier pour avoir le contenu après la copie
+        todo_list_obj = open(todo_list_obj.name)
 
         for line in todo_list_obj:
             line = line.rstrip()
@@ -57,13 +62,13 @@ def work(config: Dict, split: int) -> None:
                     f"Invalid todo list line: we need a cp command and 3 or 4 more elements (source and destination): {line}"
                 )
 
-            if last_done_slab is not None:
+            if not have_to_work:
                 if parts[2] == last_done_slab:
                     # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
-                    logging.debug(f"Last copied slab reached, copies can start again")
-                    last_done_slab = None
+                    logging.info(f"Last copied slab reached, copies can start again")
+                    have_to_work = True
 
-                next
+                continue
 
             slab_md5 = None
             if len(parts) == 4:

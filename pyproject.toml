@@ -32,7 +32,7 @@ classifiers = [
 
 dependencies = [
   "jsonschema",
-  "rok4 >= 1.4.4"
+  "rok4 >= 2.1.0, < 3.0.0"
 ]
 
 [project.optional-dependencies]
@@ -61,6 +61,7 @@ test = [
 [project.scripts]
 pyr2pyr = "rok4_tools.pyr2pyr:main"
 make-layer = "rok4_tools.make_layer:main"
+joincache = "rok4_tools.joincache:main"
 
 [tool.setuptools.package-data]
 rok4_tools = ["*.json"]

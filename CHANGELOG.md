@@ -3,7 +3,7 @@
 ### [Added]
 
 * Outil MAKE-LAYER : génère un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
-* Ajout de la publication PyPI dans la CI GitHub 
+* Ajout de la publication PyPI dans la CI GitHub
 
 ### [Changed]
 

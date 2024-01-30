@@ -7,10 +7,14 @@ import os
 import sys
 from json.decoder import JSONDecodeError
 
+import jsonschema.validators
+from jsonschema import ValidationError, validate
+from rok4.storage import get_data_str
+
 from rok4_tools import __version__
-from rok4_tools.pyr2pyr_utils.agent import work as agent_work
-from rok4_tools.pyr2pyr_utils.finisher import work as finisher_work
-from rok4_tools.pyr2pyr_utils.master import work as master_work
+from rok4_tools.joincache_utils.agent import work as agent_work
+from rok4_tools.joincache_utils.finisher import work as finisher_work
+from rok4_tools.joincache_utils.master import work as master_work
 
 # Default logger
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.WARNING)
@@ -29,8 +33,8 @@ def parse() -> None:
 
     # CLI call parser
     parser = argparse.ArgumentParser(
-        prog="pyr2pyr",
-        description="Tool to split the work to do for a pyramid copy and make slabs' copy",
+        prog="joincache",
+        description="Tool to generate a pyramid from other compatible pyramid",
         epilog="",
     )
 
@@ -67,12 +71,12 @@ def parse() -> None:
     args = parser.parse_args()
 
     if args.role != "example" and (args.configuration is None):
-        print("pyr2pyr: error: argument --conf is required for all roles except 'example'")
+        print("joincache: error: argument --conf is required for all roles except 'example'")
         sys.exit(1)
 
     if args.role == "agent" and (args.split is None or args.split < 1):
         print(
-            "pyr2pyr: error: argument --split is required for the agent role and have to be a positive integer"
+            "joincache: error: argument --split is required for the agent role and have to be a positive integer"
         )
         sys.exit(1)
 
@@ -82,27 +86,24 @@ def configuration() -> None:
 
     Raises:
         JSONDecodeError: Configuration is not a valid JSON file
-        ValidationError: Configuration is not a valid PYR2PYR configuration file
+        ValidationError: Configuration is not a valid JOINCACHE configuration file
         MissingEnvironmentError: Missing object storage informations
-        storageError: storage read issue
+        StorageError: Storage read issue
         FileNotFoundError: File or object does not exist
     """
 
     global config
 
     # Chargement du schéma JSON
-    f = open(os.path.join(os.path.dirname(__file__), "pyr2pyr_utils", "schema.json"))
+    f = open(os.path.join(os.path.dirname(__file__), "joincache_utils", "schema.json"))
     schema = json.load(f)
     f.close()
 
     # Chargement et validation de la configuration JSON
-    config = json.loads(storage.get_data_str(args.configuration))
+    config = json.loads(get_data_str(args.configuration))
     validate(config, schema)
 
     # Valeurs par défaut et cohérence avec l'appel
-    if config["to"]["storage"]["type"] == "FILE" and "depth" not in config["to"]["storage"]:
-        config["to"]["storage"]["depth"] = 2
-
     if "parallelization" not in config["process"]:
         config["process"]["parallelization"] = 1
 
@@ -111,11 +112,19 @@ def configuration() -> None:
             f"Split number have to be consistent with the parallelization level: {args.split} > {config['process']['parallelization']}"
         )
 
-    if "follow_links" not in config["process"]:
-        config["process"]["follow_links"] = False
+    if "only_links" not in config["process"]:
+        config["process"]["only_links"] = False
 
-    if "slab_limit" not in config["process"]:
-        config["process"]["slab_limit"] = 0
+    if "mask" not in config["process"]:
+        config["process"]["mask"] = False
+        config["pyramid"]["mask"] = False
+    else:
+        if "mask" not in config["pyramid"]:
+            config["pyramid"]["mask"] = False
+        elif config["process"]["mask"] == False and config["pyramid"]["mask"] == True:
+            raise Exception(
+                f"The new pyramid cannot have mask if masks are not used during the process"
+            )
 
     # Logger
     if "logger" in config:
@@ -136,7 +145,7 @@ def configuration() -> None:
             )
 
 
-def main() -> None:
+def main():
     """Main function
 
     Return 0 if success, 1 if an error occured
@@ -146,7 +155,7 @@ def main() -> None:
 
     if args.role == "example":
         # On veut juste afficher la configuration en exemple
-        f = open(os.path.join(os.path.dirname(__file__), "pyr2pyr_utils/example.json"))
+        f = open(os.path.join(os.path.dirname(__file__), "joincache_utils/example.json"))
         print(f.read())
         f.close
         sys.exit(0)
@@ -187,7 +196,3 @@ def main() -> None:
         sys.exit(1)
 
     sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()

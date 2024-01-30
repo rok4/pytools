@@ -2,11 +2,9 @@
 
 import argparse
 import logging
-import os
 import sys
 
 from rok4.layer import Layer
-from rok4.pyramid import Pyramid
 
 from rok4_tools import __version__
 

@@ -111,8 +111,6 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
   - **`root`** *(string)*: Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT.
   - **`mask`** *(boolean)*: Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements. Default: `False`.
 
-
-
 ## Compiler la suite d'outils
 
 ```sh
@@ -140,7 +138,6 @@ python3 -m build
 
     ```sh
     python3 -m pip install -e[dev]
-    pre-commit install
     ```
 
 * Consulter les [directives de contribution](./CONTRIBUTING.md)

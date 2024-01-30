@@ -1,3 +1,17 @@
+## 1.3.0
+
+### [Added]
+
+* Outil JOINCACHE génèrent une pyramide à partir d'autres pyramides raster compatibles. Fonctionne en plusieurs modes :
+    * 3 pour la génération : master, agent et finisher
+    * 2 pour l'aide : example et check
+* Création de la classe "source" pour charger des sources de données
+
+### [Changed]
+
+* Division de l'outil PYR2PYR en un fichier principal (pyr2pyr.py) et des fichier par rôles (pyr2pyr_utils/agent.py, pyr2pyr_utils.master.py, pyr2pyr_utils.finisher.py)
+* Gestion des documentations des différentes versions avec l'outil [mike](https://github.com/jimporter/mike)
+
 ## 1.2.1
 
 ### [Added]
@@ -18,12 +32,12 @@
 ### [Changed]
 
 * Outil PYR2PYR :
-  * Les pyramides source et destination peuvent être sur des clusters S3 différents. Ils sont précisés lors de la recopie des dalles. Pour préciser le cluster dans le chemin vers le descripteur de la pyramide source (ou l'emplacement de la pyramide destination), il suffit de suffixer le nom du bucket avec `@{hôte du cluster}`.
+    * Les pyramides source et destination peuvent être sur des clusters S3 différents. Ils sont précisés lors de la recopie des dalles. Pour préciser le cluster dans le chemin vers le descripteur de la pyramide source (ou l'emplacement de la pyramide destination), il suffit de suffixer le nom du bucket avec `@{hôte du cluster}`.
 
 ## 1.0.0
 
 ### [Added]
 
 * Outil PYR2PYR de copie de pyramide : copie d'une pyramide d'un stockage à une autre. Contrôle les signatures MD5 si présente dans le fichier liste. Fonctionne en plusieurs modes :
-  * 3 pour la recopie : master, agent et finisher
-  * 2 pour l'aide : example et check
+    * 3 pour la recopie : master, agent et finisher
+    * 2 pour l'aide : example et check

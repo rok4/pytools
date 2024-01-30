@@ -42,7 +42,9 @@ doc = [
 
 dev = [
   "black",
-  "pre-commit >3,<4"
+  "isort >= 5.12.0",
+  "pre-commit >3,<4",
+  "ruff >= 0.0.281"
 ]
 
 test = [
@@ -51,9 +53,9 @@ test = [
 ]
 
 [project.urls]
-"Homepage" = "https://rok4.github.io/documentation/pytools"
+"Homepage" = "https://rok4.github.io/pytools"
 "Bug Reports" = "https://github.com/rok4/pytools/issues"
-"Changelog" = "https://rok4.github.io/pytools/versions/"
+"Changelog" = "https://rok4.github.io/pytools/latest/CHANGELOG/"
 "Source" = "https://github.com/rok4/pytools"
 
 [project.scripts]
@@ -70,6 +72,15 @@ build-backend = "setuptools.build_meta"
 [tool.black]
 line-length = 100
 target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+target-version = "py38"
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
 
 [tool.setuptools.packages.find]
 where = ["src"]

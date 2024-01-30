@@ -118,11 +118,18 @@ apt install python3-venv python3-rados python3-gdal
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade build bump2version
-bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4_tools/__init__.py
+bump2version --current-version 0.0.0 --new-version x.y.z patch
 
+# Run unit tests
+python3 -m pip install -e .[test]
 # To use system installed modules rados and osgeo
 echo "/usr/lib/python3/dist-packages/" >.venv/lib/python3.10/site-packages/system.pth
 python3 -c 'import sys; print (sys.path)'
+# Run tests
+coverage run -m pytest
+# Get tests report and generate site
+coverage report -m
+coverage html -d dist/tests/
 
 # Build documentation
 python3 -m pip install -e .[doc]

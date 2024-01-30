@@ -1,4 +1,3 @@
-import os
 import subprocess
 from unittest import mock
 from unittest.mock import *
@@ -41,18 +40,18 @@ def test_no_conf():
             raise Exception("no_conf")
 
 
-@mock.patch("rok4.storage.get_data_str", return_value="{}")
+@mock.patch("rok4_tools.joincache.get_data_str", return_value="{}")
 @mock.patch("rok4_tools.joincache.args")
 def test_bad_json(mocked_args, mocked_get_data_str):
     mocked_args.configuration = "path/to/conf.json"
     with pytest.raises(Exception) as exc:
-        result = configuration()
+        configuration()
     assert "Failed validating" in str(exc.value)
     mocked_get_data_str.assert_called_once_with("path/to/conf.json")
 
 
 @mock.patch(
-    "rok4.storage.get_data_str",
+    "rok4_tools.joincache.get_data_str",
     return_value='{"datasources":[{"bottom":"6","top":"16","source":{"type":"PYRAMIDS","descriptors":["path"]}}],"pyramid":{"name":"joincache","root":"root"},"process":{"directory":"tmp","parallelization":3}}',
 )
 @mock.patch("rok4_tools.joincache.args")
@@ -61,7 +60,7 @@ def test_wrong_number_parallelization(mocked_args, mocked_get_data_str):
     mocked_args.role = "agent"
     mocked_args.split = 5
     with pytest.raises(Exception) as exc:
-        result = configuration()
+        configuration()
     assert (
         str(exc.value) == "Split number have to be consistent with the parallelization level: 5 > 3"
     )
@@ -69,7 +68,7 @@ def test_wrong_number_parallelization(mocked_args, mocked_get_data_str):
 
 
 @mock.patch(
-    "rok4.storage.get_data_str",
+    "rok4_tools.joincache.get_data_str",
     return_value='{"datasources":[{"bottom":"6","top":"16","source":{"type":"PYRAMIDS","descriptors":["path"]}}],"pyramid":{"name":"joincache","root":"root","mask":true},"process":{"directory":"tmp","parallelization":3,"mask":false}}',
 )
 @mock.patch("rok4_tools.joincache.args")
@@ -77,7 +76,7 @@ def test_impossible_mask(mocked_args, mocked_get_data_str):
     mocked_args.configuration = "path/to/conf.json"
     mocked_args.role = "master"
     with pytest.raises(Exception) as exc:
-        result = configuration()
+        configuration()
     assert (
         str(exc.value)
         == "The new pyramid cannot have mask if masks are not used during the process"
@@ -86,7 +85,7 @@ def test_impossible_mask(mocked_args, mocked_get_data_str):
 
 
 @mock.patch(
-    "rok4.storage.get_data_str",
+    "rok4_tools.joincache.get_data_str",
     return_value='{"datasources":[{"bottom":"6","top":"16","source":{"type":"PYRAMIDS","descriptors":["path"]}}],"pyramid":{"name":"joincache","root":"root"},"process":{"directory":"tmp"}}',
 )
 @mock.patch("rok4_tools.joincache.args")
@@ -94,14 +93,14 @@ def test_default_value(mocked_args, mocked_get_data_str):
     mocked_args.configuration = "path/to/conf.json"
     mocked_args.role = "master"
     try:
-        result = configuration()
+        configuration()
     except Exception as e:
         assert False, f"There is an error with the default values: {e}"
     mocked_get_data_str.assert_called_once_with("path/to/conf.json")
 
 
 @mock.patch(
-    "rok4.storage.get_data_str",
+    "rok4_tools.joincache.get_data_str",
     return_value='{"datasources":[{"bottom":"6","top":"16","source":{"type":"PYRAMIDS","descriptors":["path"]}}],"pyramid":{"name":"joincache","root":"root"},"process":{"directory":"tmp"},"logger":{"level":"WARNING"}}',
 )
 @mock.patch("rok4_tools.joincache.args")
@@ -109,7 +108,7 @@ def test_logger(mocked_args, mocked_get_data_str):
     mocked_args.configuration = "path/to/conf.json"
     mocked_args.role = "master"
     try:
-        result = configuration()
+        configuration()
     except Exception as e:
         assert False, f"There is an error with the logger: {e}"
     mocked_get_data_str.assert_called_once_with("path/to/conf.json")

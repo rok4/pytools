@@ -1,10 +1,8 @@
 import os
 import shutil
-import subprocess
 from unittest import mock
 from unittest.mock import *
 
-import pytest
 from rok4.enums import PyramidType, SlabType, StorageType
 
 from rok4_tools.joincache_utils.finisher import *
@@ -16,7 +14,10 @@ from rok4_tools.joincache_utils.finisher import *
 def test_ok(mocked_copy, mocked_from_other, mocked_source):
     files = [f for f in os.listdir("tests/list_agent")]
     for file in files:
-        shutil.copy2(os.path.join("tests/list_agent", file), "tests/list_finisher")
+        print(file)
+        shutil.copy2(
+            os.path.join("tests/list_agent", file), os.path.join("tests/list_finisher", file)
+        )
     level6 = MagicMock()
     level6.id = "6"
     pyramid1 = MagicMock()
@@ -103,7 +104,7 @@ def test_ok(mocked_copy, mocked_from_other, mocked_source):
     }
     storage_pyramid = {"type": StorageType.S3, "root": "bucket"}
 
-    resultat = work(config)
+    work(config)
     mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
     mocked_from_other.assert_called_once_with(
         source1.pyramids[0], "joincache.png", storage_pyramid, mask=True

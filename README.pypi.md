@@ -28,10 +28,10 @@ A full copy requires the tool call with the three modes (all need the JSON confi
 1. `master` role
     * Actions : write N TODO lists, in a file or s3 directory.
     * Call : `pyr2pyr --role master --conf conf.json`
-2. `agent` role : 
+2. `agent` role :
     * Actions : read the TODO list from the work directory and copy slabs
     * Call (one by TODO list) : `pyr2pyr --role agent --conf conf.json --split X`
-3. `finisher` role: 
+3. `finisher` role:
     * Actions : read all TODO lists and write the output pyramid's list file and its descriptor
     * Call : `pyr2pyr --role finisher --conf conf.json`
 

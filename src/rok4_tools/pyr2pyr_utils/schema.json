@@ -2,6 +2,7 @@
     "$schema": "http://json-schema.org/schema#",
     "title": "PYR2PYR configuration",
     "type": "object",
+    "additionalProperties": false,
     "required": [
         "to",
         "from",
@@ -10,6 +11,7 @@
     "properties": {
         "logger": {
             "type": "object",
+            "additionalProperties": false,
             "description": "Logger configuration",
             "properties": {
                 "layout": {
@@ -38,6 +40,7 @@
         },
         "from": {
             "type": "object",
+            "additionalProperties": false,
             "description": "Pyramid to copy",
             "required": ["descriptor"],
             "properties": {
@@ -49,6 +52,7 @@
         },
         "to": {
             "type": "object",
+            "additionalProperties": false,
             "description": "Pyramid to write",
             "required": ["name", "storage"],
             "properties": {
@@ -58,6 +62,7 @@
                 },
                 "storage": {
                     "type": "object",
+                    "additionalProperties": false,
                     "required": ["type", "root"],
                     "properties": {
                         "type": {
@@ -83,6 +88,7 @@
         },
         "process": {
             "type": "object",
+            "additionalProperties": false,
             "description": "Processing parameters",
             "required": ["directory"],
             "properties": {

@@ -1,0 +1,28 @@
+{
+    "logger": {
+        "level": "INFO"
+    },
+    "datasources": [
+        {
+            "top": "0",
+            "bottom": "10",
+            "source": {
+                "type": "PYRAMIDS",
+                "descriptors": [
+                    "s3://pyramids/SCAN1000_FXX_1.json",
+                    "s3://pyramids/SCAN1000_FXX_2.json",
+                    "s3://pyramids/SCAN1000_FXX_3.json"
+                ]
+            }
+        }
+    ],
+    "pyramid": {
+        "name": "joincache",
+        "root": "pyramids"
+    },
+    "process": {
+        "directory": "s3://bucket_temp/joincache",
+        "parallelization": 2,
+        "mask": true
+    }
+}

@@ -1,0 +1,8 @@
+c2w s3://path/DATA_6_1_1
+c2w s3://path/MASK_6_1_1
+c2w s3://path3/DATA_6_1_1
+c2w s3://path3/MASK_6_1_1
+oNt
+w2c s3://path_final/DATA_6_1_1
+w2c s3://path_final/MASK_6_1_1
+link s3://path_final/DATA_11_1_1 s3://path2/DATA_11_1_1 2

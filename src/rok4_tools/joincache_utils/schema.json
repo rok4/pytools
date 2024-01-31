@@ -1,0 +1,131 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "JOINCACHE pregeneration configuration",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "datasources",
+        "pyramid",
+        "process"
+    ],
+    "properties": {
+        "logger": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Paramètres du logger",
+            "properties": {
+                "layout": {
+                    "type": "string",
+                    "description": "Log format, according to logging python library",
+                    "default": "%(asctime)s %(levelname)s: %(message)s"
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Path to log file. Standard output is used if not provided"
+                },
+                "level": {
+                    "type": "string",
+                    "description": "Log level",
+                    "enum": [
+                        "DEBUG",
+                        "INFO",
+                        "WARNING",
+                        "ERROR",
+                        "CRITICAL",
+                        "NOTSET"
+                    ],
+                    "default": "WARNING"
+                }
+            }
+        },
+        "datasources": {
+            "type": "array",
+            "description": "Source pyramids",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["source", "bottom", "top"],
+                "properties": {
+                    "bottom": {
+                        "type": "string",
+                        "description": "Bottom level's usage for source pyramids"
+                    },
+                    "top": {
+                        "type": "string",
+                        "description": "Top level's usage for source pyramids"
+                    },
+                    "source": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Pyramids as data source",
+                        "required": ["type", "descriptors"],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "Source type",
+                                "enum": ["PYRAMIDS"]
+                            },
+                            "descriptors": {
+                                "type": "array",
+                                "description": "Paths to pyramids' descriptors (all with the same characteritics : TMS, formats...)",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "pyramid": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Output pyramid's storage informations",
+            "required": ["name", "root"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Output pyramid's name"
+                },
+                "root": {
+                    "type": "string",
+                    "description": "Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage"
+                },
+                "mask": {
+                    "type": "boolean",
+                    "description": "Mask export ? If true, masks are used for processing.",
+                    "default": false
+                }
+            }
+        },
+        "process": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Processing parameters",
+            "required": ["directory"],
+            "properties": {
+                "directory": {
+                    "type": "string",
+                    "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
+                },
+                "parallelization": {
+                    "type": "integer",
+                    "description": "Parallelization level, number of todo lists and agents working at the same time",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "mask": {
+                    "type": "boolean",
+                    "description": "Source masks used for processing ?",
+                    "default": false
+                },
+                "only_links": {
+                    "type": "boolean",
+                    "description": "Only links are made ? If true, only top slab will be considered and linked",
+                    "default": false
+                }
+            }
+        }
+    }
+}

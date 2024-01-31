@@ -1,0 +1,952 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://rok4.github.io/pytools/1.3.0/">
+      
+      
+      
+        <link rel="next" href="documentation/">
+      
+      
+      <link rel="icon" href="https://rok4.github.io/assets/images/rok4-carre.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.6">
+    
+    
+      
+        <title>Projet ROK4 - Outils python</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.50c56a3b.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://rok4.github.io/assets/css/commun.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#outils-rok4-python" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  🚨 Vous êtes sur la documentation d'une ancienne version. 🚨
+  <a href="../.">
+    <strong>Cliquez ici pour aller sur la dernière version.</strong>
+  </a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="https://rok4.github.io" title="Projet ROK4 - Outils python" class="md-header__button md-logo" aria-label="Projet ROK4 - Outils python" data-md-component="logo">
+      
+  <img src="https://rok4.github.io/assets/images/rok4-carre.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Projet ROK4 - Outils python
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Accueil
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+    
+  
+  Accueil
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="documentation/" class="md-tabs__link">
+        
+  
+    
+  
+  Documentation développeur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="unit-tests/" class="md-tabs__link">
+        
+  
+    
+  
+  Rapport des tests unitaires
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="CHANGELOG/" class="md-tabs__link">
+        
+  
+    
+  
+  Historique des versions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="CONTRIBUTING/" class="md-tabs__link">
+        
+  
+    
+  
+  Contribuer
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://rok4.github.io" title="Projet ROK4 - Outils python" class="md-nav__button md-logo" aria-label="Projet ROK4 - Outils python" data-md-component="logo">
+      
+  <img src="https://rok4.github.io/assets/images/rok4-carre.png" alt="logo">
+
+    </a>
+    Projet ROK4 - Outils python
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Accueil
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Accueil
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installer-les-outils" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installer les outils
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utiliser-les-outils" class="md-nav__link">
+    <span class="md-ellipsis">
+      Utiliser les outils
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utiliser les outils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pyr2pyr" class="md-nav__link">
+    <span class="md-ellipsis">
+      PYR2PYR
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PYR2PYR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fonctionnement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fonctionnement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      MAKE-LAYER
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#joincache" class="md-nav__link">
+    <span class="md-ellipsis">
+      JOINCACHE
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JOINCACHE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fonctionnement_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fonctionnement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compiler-la-suite-doutils" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiler la suite d'outils
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contribuer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contribuer
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publier-la-suite-doutils-sur-pypi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Publier la suite d'outils sur Pypi
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="documentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation développeur
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="unit-tests/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rapport des tests unitaires
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CHANGELOG/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Historique des versions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CONTRIBUTING/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contribuer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installer-les-outils" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installer les outils
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utiliser-les-outils" class="md-nav__link">
+    <span class="md-ellipsis">
+      Utiliser les outils
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utiliser les outils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pyr2pyr" class="md-nav__link">
+    <span class="md-ellipsis">
+      PYR2PYR
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PYR2PYR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fonctionnement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fonctionnement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      MAKE-LAYER
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#joincache" class="md-nav__link">
+    <span class="md-ellipsis">
+      JOINCACHE
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JOINCACHE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fonctionnement_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fonctionnement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compiler-la-suite-doutils" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiler la suite d'outils
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contribuer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contribuer
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publier-la-suite-doutils-sur-pypi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Publier la suite d'outils sur Pypi
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="outils-rok4-python">Outils ROK4 Python</h1>
+<p><img alt="ROK4 Logo" src="https://rok4.github.io/assets/images/rok4.png" /></p>
+<p>Ce projet contient des outils de gestion des pyramides de données, écrits en Python.</p>
+<h2 id="installer-les-outils">Installer les outils</h2>
+<p>Installations système requises :</p>
+<ul>
+<li>debian : <code>apt install python3-rados python3-gdal</code></li>
+</ul>
+<p>Depuis <a href="https://pypi.org/project/rok4-tools/">PyPI</a> : <code>pip install rok4-tools</code></p>
+<p>Depuis <a href="https://github.com/rok4/pytools/releases/">GitHub</a> : <code>pip install https://github.com/rok4/pytools/releases/download/1.3.0/rok4_tools-1.3.0-py3-none-any.whl</code></p>
+<p>L'environnement d'exécution doit avoir accès aux librairies système. Dans le cas d'une utilisation au sein d'un environnement python, précisez bien à la création <code>python3 -m venv --system-site-packages .venv</code>.</p>
+<h2 id="utiliser-les-outils">Utiliser les outils</h2>
+<h3 id="pyr2pyr">PYR2PYR</h3>
+<p>PYR2PYR est un outil de copie d'une pyramide d'un stockage à un autre. Il est possible de filtrer les dalles transférée en précisant une taille limite sous laquelle les données ne sont pas recopiées. La copie des dalles est parallélisable. Si des signatures MD5 sont présente dans le fichier liste, elles sont contrôlées après recopie.</p>
+<p>Un exemple de configuration est affichable avec la commande <code>pyr2pyr --role example</code> et l'appel <code>pyr2pyr --role check --conf conf.json</code> permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : <code>s3://bucket/configuration.json</code>)</p>
+<h4 id="fonctionnement">Fonctionnement</h4>
+<p>Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :</p>
+<ol>
+<li>Rôle <code>master</code><ul>
+<li>Actions : génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).</li>
+<li>Appel : <code>pyr2pyr --role master --conf conf.json</code></li>
+</ul>
+</li>
+<li>Rôle <code>agent</code> :<ul>
+<li>Actions : lecture de la TODO list depuis le dossier de traitement et recopie des dalles</li>
+<li>Appel (un appel par TODO list) : <code>pyr2pyr --role agent --conf conf.json --split X</code></li>
+</ul>
+</li>
+<li>Rôle <code>finisher</code> :<ul>
+<li>Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.</li>
+<li>Appel : <code>pyr2pyr --role finisher --conf conf.json</code></li>
+</ul>
+</li>
+</ol>
+<p><img alt="Enchaînement PYR2PYR" src="images/pyr2pyr.png" /></p>
+<h4 id="configuration">Configuration</h4>
+<p>Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec <code>jsonschema2md bin/pyr2pyr.schema.json /dev/stdout</code>)</p>
+<ul>
+<li><strong><code>logger</code></strong> <em>(object)</em>: Logger configuration.<ul>
+<li><strong><code>layout</code></strong> <em>(string)</em>: Log format, according to logging python library. Default: <code>%(asctime)s %(levelname)s: %(message)s</code>.</li>
+<li><strong><code>file</code></strong> <em>(string)</em>: Path to log file. Standard output is used if not provided.</li>
+<li><strong><code>level</code></strong> <em>(string)</em>: Log level. Must be one of: <code>['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'NOTSET']</code>. Default: <code>WARNING</code>.</li>
+</ul>
+</li>
+<li><strong><code>from</code></strong> <em>(object)</em>: Pyramid to copy.<ul>
+<li><strong><code>descriptor</code></strong> <em>(string)</em>: Path to pyramid's descriptor to copy.</li>
+</ul>
+</li>
+<li><strong><code>to</code></strong> <em>(object)</em>: Pyramid to write.<ul>
+<li><strong><code>name</code></strong> <em>(string)</em>: Output pyramid's name.</li>
+<li><strong><code>storage</code></strong> <em>(object)</em><ul>
+<li><strong><code>type</code></strong> <em>(string)</em>: Storage type. Must be one of: <code>['FILE', 'S3', 'CEPH']</code>.</li>
+<li><strong><code>root</code></strong> <em>(string)</em>: Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage.</li>
+<li><strong><code>depth</code></strong> <em>(integer)</em>: Tree depth, only for FILE storage. Minimum: <code>1</code>. Default: <code>2</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong><code>process</code></strong> <em>(object)</em>: Processing parameters.<ul>
+<li><strong><code>directory</code></strong> <em>(string)</em>: Directory to write copies to process, FILE directory or S3/CEPH prefix.</li>
+<li><strong><code>parallelization</code></strong> <em>(integer)</em>: Parallelization level, number of todo lists and agents working at the same time. Minimum: <code>1</code>. Default: <code>1</code>.</li>
+<li><strong><code>follow_links</code></strong> <em>(boolean)</em>: Do we follow links (data slabs in others pyramids than the 'from' one). Default: <code>False</code>.</li>
+<li><strong><code>slab_limit</code></strong> <em>(integer)</em>: Minimum slab size (if under, we do not copy). Minimum: <code>0</code>. Default: <code>0</code>.</li>
+</ul>
+</li>
+</ul>
+<h3 id="make-layer">MAKE-LAYER</h3>
+<p>MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser</p>
+<p>Utilisation : <code>make-layer [-h] --pyramids storage://path/to/pyr.json[&gt;BOTTOM&gt;TOP] [storage://path/to/pyr.json[&gt;BOTTOM&gt;TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]</code></p>
+<h3 id="joincache">JOINCACHE</h3>
+<p>L'outil JOINCACHE génèrent une pyramide raster à partir d'autres pyramide raster compatibles (même TMS, dalles de même dimensions, canaux au même format). La composition se fait verticalement (choix des pyramides sources par niveau) et horizontalement (choix des pyramides source par zone au sein d'un niveau).</p>
+<p>Un exemple de configuration est affichable avec la commande <code>joincache --role example</code> et l'appel <code>joincache --role check --conf conf.json</code> permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : <code>s3://bucket/configuration.json</code>)</p>
+<h4 id="fonctionnement_1">Fonctionnement</h4>
+<p>Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :</p>
+<ol>
+<li>Rôle <code>master</code><ul>
+<li>Actions : contrôle du fichier de configuration et des pyramides, identification du travail, génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).</li>
+<li>Appel : <code>joincache --role master --conf conf.json</code></li>
+</ul>
+</li>
+<li>Rôle <code>agent</code> :<ul>
+<li>Actions : lecture de la TODO list depuis le dossier de traitement et traitement de chaque ligne</li>
+<li>Appel (un appel par TODO list) : <code>joincache --role agent --conf conf.json --split X</code></li>
+</ul>
+</li>
+<li>Rôle <code>finisher</code> :<ul>
+<li>Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.</li>
+<li>Appel : <code>joincache --role finisher --conf conf.json</code></li>
+</ul>
+</li>
+</ol>
+<h4 id="configuration_1">Configuration</h4>
+<p>Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec <code>jsonschema2md src/rok4_tools/joincache_utils/schema.json /dev/stdout</code>)</p>
+<ul>
+<li><strong><code>logger</code></strong> <em>(object)</em>: Paramètres du logger.</li>
+<li><strong><code>layout</code></strong> <em>(string)</em>: Format du log, selon la syntaxe Log4perl. Default: <code>%5p : %m (%M) %n</code>.</li>
+<li><strong><code>file</code></strong> <em>(string)</em>: Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni.</li>
+<li><strong><code>level</code></strong> <em>(string)</em>: Niveau de log. Must be one of: <code>['DEBUG', 'INFO', 'WARN', 'ERROR', 'ALWAYS']</code>. Default: <code>WARN</code>.</li>
+<li><strong><code>datasources</code></strong> <em>(array)</em>: Pyramides sources.</li>
+<li><strong>Items</strong> <em>(object)</em><ul>
+<li><strong><code>bottom</code></strong> <em>(string)</em>: Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée.</li>
+<li><strong><code>top</code></strong> <em>(string)</em>: Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée.</li>
+<li><strong><code>source</code></strong> <em>(object)</em>: Base PostgreSQL comme source de données.</li>
+<li><strong><code>type</code></strong> <em>(string)</em>: Type de source. Must be one of: <code>['PYRAMIDS']</code>.</li>
+<li><strong><code>descriptors</code></strong> <em>(array)</em>: Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...).<ul>
+<li><strong>Items</strong> <em>(string)</em></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong><code>pyramid</code></strong> <em>(object)</em>: Génération d'une nouvelle pyramide comme produit de fusion.</li>
+<li><strong><code>name</code></strong> <em>(string)</em>: Nom de la nouvelle pyramide fusionnée.</li>
+<li><strong><code>root</code></strong> <em>(string)</em>: Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT.</li>
+<li><strong><code>mask</code></strong> <em>(boolean)</em>: Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements. Default: <code>False</code>.</li>
+</ul>
+<h2 id="compiler-la-suite-doutils">Compiler la suite d'outils</h2>
+<pre><code class="language-sh">apt install python3-venv python3-rados python3-gdal
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade build bump2version
+bump2version --current-version 0.0.0 --new-version 1.3.0 patch
+
+# Run unit tests
+python3 -m pip install -e .[test]
+# To use system installed modules rados and osgeo
+echo &quot;/usr/lib/python3/dist-packages/&quot; &gt;.venv/lib/python3.10/site-packages/system.pth
+python3 -c 'import sys; print (sys.path)'
+# Run tests
+coverage run -m pytest
+# Get tests report and generate site
+coverage report -m
+coverage html -d dist/tests/
+
+# Build documentation
+python3 -m pip install -e .[doc]
+pdoc3 --html --output-dir dist/ rok4_tools
+
+# Build artefacts
+python3 -m build
+</code></pre>
+<h2 id="contribuer">Contribuer</h2>
+<ul>
+<li>
+<p>Installer les dépendances de développement :</p>
+<p><code>sh
+python3 -m pip install -e[dev]</code></p>
+</li>
+<li>
+<p>Consulter les <a href="CONTRIBUTING/">directives de contribution</a></p>
+</li>
+</ul>
+<h2 id="publier-la-suite-doutils-sur-pypi">Publier la suite d'outils sur Pypi</h2>
+<p>Configurer le fichier <code>$HOME/.pypirc</code> avec les accès à votre compte PyPI.</p>
+<pre><code class="language-sh">python3 -m pip install --upgrade twine
+python3 -m twine upload --repository pypi dist/rok4_tools-1.3.0-py3-none-any.whl dist/rok4_tools-1.3.0.tar.gz
+</code></pre>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "navigation.tabs.sticky"], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.e1c3ead8.min.js"></script>
+      
+    
+  </body>
+</html>

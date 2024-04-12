@@ -64,6 +64,7 @@ pyr2pyr = "rok4_tools.pyr2pyr:main"
 make-layer = "rok4_tools.make_layer:main"
 joincache = "rok4_tools.joincache:main"
 pyrolyse = "rok4_tools.pyrolyse:main"
+tmsizer = "rok4_tools.tmsizer:main"
 
 [tool.setuptools.package-data]
 "rok4_tools.joincache_utils" = ["*.json"]

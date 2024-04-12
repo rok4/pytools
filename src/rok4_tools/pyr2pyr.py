@@ -167,7 +167,7 @@ def main() -> None:
         sys.exit(1)
 
     except FileNotFoundError as e:
-        logging.error(f"{args.configuration} does not exists")
+        logging.error(f"{e} does not exists")
         sys.exit(1)
 
     except Exception as e:

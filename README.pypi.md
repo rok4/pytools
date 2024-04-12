@@ -108,3 +108,14 @@ MAKE-LAYER generate a layer's descriptor, [ROK4 server](https://github.com/rok4/
 #### Usage
 
 `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
+
+
+### PYROLYSE
+
+PYROLYSE analyse a pyramid, to get slab/tile size and count, for hte entire pyramide and per level. Slab and tile sizes are not all processed : a ratio limits the number of measures. This ratio is assumed for a level (to avoid to have mainly data for the best level). If tile statistics is enabled, access time are compiled.
+
+For size and access time, it's possible to get deciles and not all values.
+
+#### Usage
+
+`pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`

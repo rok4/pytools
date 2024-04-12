@@ -43,7 +43,7 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
 
 #### Configuration
 
-Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md bin/pyr2pyr.schema.json /dev/stdout`)
+Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/pyr2pyr_utils/schema.json /dev/stdout`)
 
 - **`logger`** *(object)*: Logger configuration.
     - **`layout`** *(string)*: Log format, according to logging python library. Default: `%(asctime)s %(levelname)s: %(message)s`.
@@ -64,12 +64,6 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
     - **`slab_limit`** *(integer)*: Minimum slab size (if under, we do not copy). Minimum: `0`. Default: `0`.
 
 
-### MAKE-LAYER
-
-MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
-
-Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
-
 ### JOINCACHE
 
 L'outil JOINCACHE génèrent une pyramide raster à partir d'autres pyramide raster compatibles (même TMS, dalles de même dimensions, canaux au même format). La composition se fait verticalement (choix des pyramides sources par niveau) et horizontalement (choix des pyramides source par zone au sein d'un niveau).
@@ -78,7 +72,7 @@ Un exemple de configuration est affichable avec la commande `joincache --role ex
 
 #### Fonctionnement
 
-Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
+Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
 
 1. Rôle `master`
     * Actions : contrôle du fichier de configuration et des pyramides, identification du travail, génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
@@ -94,22 +88,34 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
 
 Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/joincache_utils/schema.json /dev/stdout`)
 
-- **`logger`** *(object)*: Paramètres du logger.
-  - **`layout`** *(string)*: Format du log, selon la syntaxe Log4perl. Default: `%5p : %m (%M) %n`.
-  - **`file`** *(string)*: Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni.
-  - **`level`** *(string)*: Niveau de log. Must be one of: `['DEBUG', 'INFO', 'WARN', 'ERROR', 'ALWAYS']`. Default: `WARN`.
-- **`datasources`** *(array)*: Pyramides sources.
-  - **Items** *(object)*
-    - **`bottom`** *(string)*: Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée.
-    - **`top`** *(string)*: Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée.
-    - **`source`** *(object)*: Base PostgreSQL comme source de données.
-      - **`type`** *(string)*: Type de source. Must be one of: `['PYRAMIDS']`.
-      - **`descriptors`** *(array)*: Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...).
+- **`logger`** *(object)*: Paramètres du logger. Cannot contain additional properties.
+  - **`layout`** *(string)*: Log format, according to logging python library. Default: `"%(asctime)s %(levelname)s: %(message)s"`.
+  - **`file`** *(string)*: Path to log file. Standard output is used if not provided.
+  - **`level`** *(string)*: Log level. Must be one of: `["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]`. Default: `"WARNING"`.
+- **`datasources`** *(array)*: Source pyramids.
+  - **Items** *(object)*: Cannot contain additional properties.
+    - **`bottom`** *(string, required)*: Bottom level's usage for source pyramids.
+    - **`top`** *(string, required)*: Top level's usage for source pyramids.
+    - **`source`** *(object, required)*: Pyramids as data source. Cannot contain additional properties.
+      - **`type`** *(string, required)*: Source type. Must be one of: `["PYRAMIDS"]`.
+      - **`descriptors`** *(array, required)*: Paths to pyramids' descriptors (all with the same characteritics : TMS, formats...). Length must be at least 1.
         - **Items** *(string)*
-- **`pyramid`** *(object)*: Génération d'une nouvelle pyramide comme produit de fusion.
-  - **`name`** *(string)*: Nom de la nouvelle pyramide fusionnée.
-  - **`root`** *(string)*: Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT.
-  - **`mask`** *(boolean)*: Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements. Default: `False`.
+- **`pyramid`** *(object)*: Output pyramid's storage informations. Cannot contain additional properties.
+  - **`name`** *(string, required)*: Output pyramid's name.
+  - **`root`** *(string, required)*: Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage.
+  - **`mask`** *(boolean)*: Mask export ? If true, masks are used for processing. Default: `false`.
+- **`process`** *(object)*: Processing parameters. Cannot contain additional properties.
+  - **`directory`** *(string, required)*: Directory to write copies to process, FILE directory or S3/CEPH prefix.
+  - **`parallelization`** *(integer)*: Parallelization level, number of todo lists and agents working at the same time. Minimum: `1`. Default: `1`.
+  - **`mask`** *(boolean)*: Source masks used for processing ? Default: `false`.
+  - **`only_links`** *(boolean)*: Only links are made ? If true, only top slab will be considered and linked. Default: `false`.
+
+
+### MAKE-LAYER
+
+MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
+
+Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
 
 ## Compiler la suite d'outils
 

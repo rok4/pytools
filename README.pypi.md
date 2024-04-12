@@ -19,7 +19,7 @@ The `rok4` package is available on :
 
 PYR2PYR allow to copy a pyramid from a storage to another one. It is possible to ignore slab under a provided size. Copy is parallelized. If MD5 hash are in the pyramid's list file, they are used to check integrity after copy.
 
-To obtain an example of JSON configuration, call `pyr2pyr --role example`. To check a JSON configuration, call `pyr2pyr --role check --conf conf.json`. JSON configuratio can be a file or a S3 object(use a path's prefix, for example : `s3://bucket/configuration.json`)
+To obtain an example of JSON configuration, call `pyr2pyr --role example`. To check a JSON configuration, call `pyr2pyr --role check --conf conf.json`. JSON configuration can be a file or a S3 object(use a path's prefix, for example : `s3://bucket/configuration.json`)
 
 #### Usage
 
@@ -35,11 +35,9 @@ A full copy requires the tool call with the three modes (all need the JSON confi
     * Actions : read all TODO lists and write the output pyramid's list file and its descriptor
     * Call : `pyr2pyr --role finisher --conf conf.json`
 
-![PYR2PYR workflow](https://rok4.github.io/pytools/versions/latest/docs/images/pyr2pyr.png)
+![PYR2PYR workflow](https://rok4.github.io/pytools/latest/images/pyr2pyr.png)
 
 #### Configuration
-
-JSON configuration content (generated from the JSON schema with `jsonschema2md bin/pyr2pyr.schema.json /dev/stdout`)
 
 - **`logger`** *(object)*: Logger configuration.
     - **`layout`** *(string)*: Log format, according to logging python library. Default: `%(asctime)s %(levelname)s: %(message)s`.
@@ -59,6 +57,49 @@ JSON configuration content (generated from the JSON schema with `jsonschema2md b
     - **`follow_links`** *(boolean)*: Do we follow links (data slabs in others pyramids than the 'from' one). Default: `False`.
     - **`slab_limit`** *(integer)*: Minimum slab size (if under, we do not copy). Minimum: `0`. Default: `0`.
 
+### JOINCACHE
+
+JOINCACHE build a raster pyramid from consistent pyramids (same TMS, same slab size, same bands format). Source pyramids are provided per levels.
+
+To obtain an example of JSON configuration, call `joincache --role example`. To check a JSON configuration, call `joincache --role check --conf conf.json`. JSON configuration can be a file or a S3 object(use a path's prefix, for example : `s3://bucket/configuration.json`)
+
+#### Usage
+
+A full build requires the tool call with the three modes (all need the JSON configuration), in this order :
+
+1. `master` role
+    * Actions : write N TODO lists, in a file or s3 directory.
+    * Call : `joincache --role master --conf conf.json`
+2. `agent` role :
+    * Actions : read the TODO list from the work directory and build or link slabs
+    * Call (one by TODO list) : `joincache --role agent --conf conf.json --split X`
+3. `finisher` role:
+    * Actions : read all TODO lists and write the output pyramid's list file and its descriptor
+    * Call : `joincache --role finisher --conf conf.json`
+
+#### Configuration
+
+- **`logger`** *(object)*: Paramètres du logger. Cannot contain additional properties.
+  - **`layout`** *(string)*: Log format, according to logging python library. Default: `"%(asctime)s %(levelname)s: %(message)s"`.
+  - **`file`** *(string)*: Path to log file. Standard output is used if not provided.
+  - **`level`** *(string)*: Log level. Must be one of: `["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]`. Default: `"WARNING"`.
+- **`datasources`** *(array)*: Source pyramids.
+  - **Items** *(object)*: Cannot contain additional properties.
+    - **`bottom`** *(string, required)*: Bottom level's usage for source pyramids.
+    - **`top`** *(string, required)*: Top level's usage for source pyramids.
+    - **`source`** *(object, required)*: Pyramids as data source. Cannot contain additional properties.
+      - **`type`** *(string, required)*: Source type. Must be one of: `["PYRAMIDS"]`.
+      - **`descriptors`** *(array, required)*: Paths to pyramids' descriptors (all with the same characteritics : TMS, formats...). Length must be at least 1.
+        - **Items** *(string)*
+- **`pyramid`** *(object)*: Output pyramid's storage informations. Cannot contain additional properties.
+  - **`name`** *(string, required)*: Output pyramid's name.
+  - **`root`** *(string, required)*: Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage.
+  - **`mask`** *(boolean)*: Mask export ? If true, masks are used for processing. Default: `false`.
+- **`process`** *(object)*: Processing parameters. Cannot contain additional properties.
+  - **`directory`** *(string, required)*: Directory to write copies to process, FILE directory or S3/CEPH prefix.
+  - **`parallelization`** *(integer)*: Parallelization level, number of todo lists and agents working at the same time. Minimum: `1`. Default: `1`.
+  - **`mask`** *(boolean)*: Source masks used for processing ? Default: `false`.
+  - **`only_links`** *(boolean)*: Only links are made ? If true, only top slab will be considered and linked. Default: `false`.
 
 ### MAKE-LAYER
 

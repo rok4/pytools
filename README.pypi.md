@@ -118,4 +118,4 @@ For size and access time, it's possible to get deciles and not all values.
 
 #### Usage
 
-`pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--deciles] [--ratio N]`
+`pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`

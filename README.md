@@ -122,7 +122,7 @@ PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et 
 
 Concernant les tailles et mes temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
 
-Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--deciles] [--ratio N]`
+Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
 
 ## Compiler la suite d'outils
 

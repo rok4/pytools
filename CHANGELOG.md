@@ -1,3 +1,10 @@
+
+## 1.4.0
+
+### [Added]
+
+* Outil PYROLYSE : compile des statistiques (nombre de dalles / tuile, taille, temps d'accès) sur une pyramide de données, au global et par niveau
+
 ## 1.3.0
 
 ### [Added]

@@ -12,11 +12,11 @@ from rok4_tools.joincache_utils.finisher import *
 @mock.patch("rok4_tools.joincache_utils.finisher.Pyramid.from_other")
 @mock.patch("rok4_tools.joincache_utils.finisher.storage.copy")
 def test_ok(mocked_copy, mocked_from_other, mocked_source):
-    files = [f for f in os.listdir("tests/list_agent")]
+    files = [f for f in os.listdir("tests/fixtures/list_agent")]
     for file in files:
         print(file)
         shutil.copy2(
-            os.path.join("tests/list_agent", file), os.path.join("tests/list_finisher", file)
+            os.path.join("tests/fixtures/list_agent", file), os.path.join("tests/fixtures/list_finisher", file)
         )
     level6 = MagicMock()
     level6.id = "6"
@@ -99,7 +99,7 @@ def test_ok(mocked_copy, mocked_from_other, mocked_source):
             "parallelization": 3,
             "mask": True,
             "only_links": False,
-            "directory": "tests/list_finisher",
+            "directory": "tests/fixtures/list_finisher",
         },
     }
     storage_pyramid = {"type": StorageType.S3, "root": "bucket"}

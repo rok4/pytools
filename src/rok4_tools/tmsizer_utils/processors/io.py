@@ -152,10 +152,13 @@ class StdoutProcessor(Processor):
 
         Args:
             input (Processor): Processor from which data is read
+
+        Raises:
+            ValueError: Input format is not allowed
         """        
 
         if input.format == "FILELIKE":
-            raise Exception(f"Input format {input.format} is not handled for StdoutProcessor")
+            raise ValueError(f"Input format {input.format} is not handled for StdoutProcessor")
 
         super().__init__("NONE")
         self.__input = input
@@ -254,7 +257,7 @@ class PathoutProcessor(Processor):
             tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
             for item in self.__input.process():
                 self._processed += 1
-                tmp.write(str(item))
+                tmp.write(f"{str(item)}\n")
             tmp.close()
             copy(tmp.name, self.__path)
             os.remove(tmp.name)

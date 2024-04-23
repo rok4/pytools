@@ -34,7 +34,7 @@ def test_ok(mocked_os_system, mocked_link, mocked_from_descriptor):
             "parallelization": 3,
             "mask": True,
             "only_links": False,
-            "directory": "tests/list_agent",
+            "directory": "tests/fixtures/list_agent",
         },
     }
     resultat = work(config, 1)

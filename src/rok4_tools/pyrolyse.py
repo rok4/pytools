@@ -77,11 +77,11 @@ def parse() -> None:
     )
 
     parser.add_argument(
-        '--json',
+        '--output',
         metavar='storage://path/to/conf.json',
         action='store',
-        dest='output',
-        help='JSON file to write with results. Print in standard output if not provided',
+        dest='output_path',
+        help='File/object to write results. Print in standard output if not provided',
         required=False
     )
 
@@ -97,7 +97,7 @@ def parse() -> None:
         '--progress',
         action='store_true',
         dest='progress',
-        help='Print a progress bar (only with --json option)',
+        help='Print a progress bar (only with --output option)',
         required=False
     )
 
@@ -127,7 +127,7 @@ def parse() -> None:
         stats["global"]["tile_sizes"] = []
         stats["perfs"] = []
 
-    if args.progress and args.output is None:
+    if args.progress and args.output_path is None:
         raise Exception("Print a progress bar is not possible without output file for statistics (--json option)")
 
 
@@ -228,10 +228,10 @@ def work() -> None:
 def write() -> None:
     """Write the informations as JSON, in the standard output or a file
     """    
-    if args.output is None:
+    if args.output_path is None:
         print(json.dumps(stats))
     else:
-        put_data_str(json.dumps(stats), args.output)
+        put_data_str(json.dumps(stats), args.output_path)
 
 
 def main() -> None:

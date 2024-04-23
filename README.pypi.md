@@ -7,9 +7,11 @@ The `rok4-tools` package help to use [ROK4 project](https://rok4.github.io/) con
 ## Installation
 
 Required system packages :
+
 * debian : `apt install python3-rados python3-gdal`
 
 The `rok4` package is available on :
+
 * [PyPI](https://pypi.org/project/rok4/) : `pip install rok4`
 * [GitHub](https://github.com/rok4/core-python/releases/) : `pip install https://github.com/rok4/core-python/releases/download/<version>/rok4-<version>-py3-none-any.whl`
 
@@ -107,15 +109,60 @@ MAKE-LAYER generate a layer's descriptor, [ROK4 server](https://github.com/rok4/
 
 #### Usage
 
-`make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
+`make-layer [-h] [--version] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my_data [--styles normal [normal ...]] [--title my data] [--abstract my data description] [--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}] [--directory s3://layers_bucket]`
 
+* `-h, --help` : show this help message and exit
+* `--version` : show program's version number and exit
+* `--pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...]` : Pyramids' descriptors, with extrem levels to use if not all levels have to be used
+* `--name my_data` : Layer's technical name
+* `--styles normal [normal ...]` : Styles ID available for the layer (no controls, ID are added as provided)
+* `--title my data` : Layer title
+* `--abstract "my data description"` : Layer description
+* `--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}` : Layer resampling
+* `--directory s3://layers_bucket` : Directory (file or object) where to write layer's descriptor. Print in standard output if not provided
 
 ### PYROLYSE
 
-PYROLYSE analyse a pyramid, to get slab/tile size and count, for hte entire pyramide and per level. Slab and tile sizes are not all processed : a ratio limits the number of measures. This ratio is assumed for a level (to avoid to have mainly data for the best level). If tile statistics is enabled, access time are compiled.
+PYROLYSE analyse a pyramid, to get slab/tile size and count, for the entire pyramide and per level. Slab and tile sizes are not all processed : a ratio limits the number of measures. This ratio is assumed for a level (to avoid to have mainly data for the best level). If tile statistics is enabled, access time are compiled.
 
 For size and access time, it's possible to get deciles and not all values.
 
 #### Usage
 
 `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
+
+* `-h, --help` : show this help message and exit
+* `--version` : show program's version number and exit
+* `--pyramid storage://path/to/pyr.json` : pyramid's descriptor, to analyse
+* `--output storage://path/to/conf.json` : file/object to write results. Print in standard output if not provided
+* `--tiles` : get size analysis for tiles
+* `--progress` : Print a progress bar (only with --output option)
+* `--deciles` : get deciles for sizes and read times rather than values
+* `--ratio N` : ratio of measured slabs and tiles (<ratio> choose one). All slabs are counted
+
+### TMSIZER
+
+TMSIZER converts data according to a pivot Tile Matrix Set. Input data can be read from a file, an object or standard input. The output data can be write to a file, an object or standard output. Several input and output formats are allowed.
+
+#### Usage
+
+`tmsizer [-h] [--version] --tms <TMS identifier> [-i storage://path/to/data] -if <format> [-io <KEY>:<VALUE> [<KEY>:<VALUE> ...]] [-o storage://path/to/results] -of <format> [-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...]] [--progress]`
+
+* `-h, --help` : show this help message and exit
+* `--version` : show program's version number and exit
+* `--tms <TMS identifier>` : tile matrix set identifier
+* `-if <format>, --input-format <format>` : input format
+* `-of <format>, --output-format <format>` : output format
+* `-i storage://path/to/data, --input storage://path/to/data` : file/object to read data. Read from standard input if not provided
+* `-o storage://path/to/results, --output storage://path/to/results` : file/object to write results. Print in standard output if not provided
+* `-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...], --output-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options for output
+* `-io <KEY>:<VALUE> [<KEY>:<VALUE> ...], --input-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options for input
+* `--progress` : print a progress bar (only with --output option)
+
+Availables conversions (mandatory options in bold, optionnal options in italic) :
+
+| Input format   | Input options                                     | Output format  | Output options                                                            | Description                                                                                          |
+|----------------|---------------------------------------------------|----------------|---------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| GETTILE_PARAMS | *`level=<id>`*                                    | COUNT          |                                                                           | Count the GetTiles requests using the pivot TMS and optionnally the provided level                   |
+| GETTILE_PARAMS | *`level=<id>`*                                    | HEATMAP        | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Create an heat map of requested tiles on the provided area, optionnaly filtering with provided level |
+| GEOMETRY       | **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`** | GETTILE_PARAMS |                                                                           | Generate GetTile query parameters for tiles intersecting input geometries for the provided level     |

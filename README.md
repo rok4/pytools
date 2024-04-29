@@ -114,15 +114,63 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
 
 MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
 
-Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
+Utilisation : `make-layer [-h] [--version] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my_data [--styles normal [normal ...]] [--title my data] [--abstract my data description] [--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}] [--directory s3://layers_bucket]`
+
+* `-h, --help` : affiche l'aide et quitte
+* `--version` : affiche la version et quitte
+* `--pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...]` : descripteur des pyramides à utiliser dans la couche et niveaux d'utilisation
+* `--name my_data` : nom technique de la couche
+* `--styles normal [normal ...]` : identifiants des styles disponibles pour la couche (pas de contrôle sur les identifiants)
+* `--title my data` : titre de la couche
+* `--abstract "my data description"` : résumé de la couche
+* `--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}` : type d'interpolation pour le réechantillonnage
+* `--directory s3://layers_bucket` : dossier, fichier ou objet, dans lequel écrire le descripteur de pyramide. Affiche dans la sortie standard si non fourni
 
 ### PYROLYSE
 
 PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
 
-Concernant les tailles et mes temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
+Concernant les tailles et les temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
 
 Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
+
+* `-h, --help` : affiche l'aide et quitte
+* `--version` : affiche la version et quitte
+* `--pyramid storage://path/to/pyr.json` : descripteur de la pyramide à analyser
+* `--output storage://path/to/conf.json` : fichier ou objet dans lequel écrire le résultat. Affiche dans la sortie standard si non fourni
+* `--tiles` : avoir l'analyse de la taille des tuiles
+* `--progress` : affiche une barre de progression, seulement avec l'option `--output`
+* `--deciles` : avoir les déciles plutôt que toutes les valeurs de taille et de temps d'accès
+* `--ratio N` : ratio à appliquer sur la mesure de taille (un parmi <ratio>, 100 par défaut). Toutes les dalles sont comptées
+
+### TMSIZER
+
+TMSIZER est un outil permettant de convertir des informations selon différents formats en accord avec un Tile Matrix Set en particulier. Les données en entrée peuvent être lues depuis un fichier, un objet ou l'entrée standard. Les données en sortie peuvent être écrites dans un fichier, un objet ou la sortie standard.
+
+Utilisation : `tmsizer [-h] [--version] --tms <TMS identifier> [-i storage://path/to/data] -if <format> [-io <KEY>:<VALUE> [<KEY>:<VALUE> ...]] [-o storage://path/to/results] -of <format> [-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...]] [--progress]`
+
+* `-h, --help` : affiche l'aide et quitte
+* `--version` : affiche la version et quitte
+* `--tms <TMS identifier>` : identifiant du TMS
+* `-i storage://path/to/data, --input storage://path/to/data` : fichier ou objet contenant la donnée en entrée. Lecture depuis l'entrée standard si non fourni
+* `-if <format>, --input-format <format>` : format des données en entrée
+* `-io <KEY>:<VALUE> [<KEY>:<VALUE> ...], --input-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options pour les données en entrée (dépend du format)
+* `-o storage://path/to/results, --output storage://path/to/results` : fichier ou objet où écrire la donnée en sortie. Écriture dans la sortie standard si non fourni
+* `-of <format>, --output-format <format>` : format des données en sortie
+* `-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...], --output-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options pour les données en sortie (dépend du format)
+* `--progress` : affiche une barre de progression, seulement avec l'option `--output`
+
+Conversions possibles (options obligatoires en gras, options facultatives en italique) :
+
+| Format en entrée | Options d'entrée | Format en sortie | Options de sortie                                             | Description                                                                                             |
+|------------------|------------------|------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| GETTILE_PARAMS   | *`level=<id>`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et l'éventuel niveau fourni  |
+| GETTILE_PARAMS   | *`level=<id>`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur l'éventuel niveau fourni |
+| GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles nu niveau fourni intersectant les géométries en entrée            |
+
+Exemple (GETTILE_PARAMS -> HEATMAP) : 
+
+`tmsizer -i logs.txt --tms PM -io level=15 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
 ## Compiler la suite d'outils
 

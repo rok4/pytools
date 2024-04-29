@@ -168,6 +168,9 @@ Conversions possibles (options obligatoires en gras, options facultatives en ita
 | GETTILE_PARAMS   | *`level=<id>`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur l'éventuel niveau fourni |
 | GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles nu niveau fourni intersectant les géométries en entrée            |
 
+Exemple (GETTILE_PARAMS -> HEATMAP) : 
+
+`tmsizer -i logs.txt --tms PM -io level=15 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
 ## Compiler la suite d'outils
 

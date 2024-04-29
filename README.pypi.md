@@ -166,3 +166,7 @@ Availables conversions (mandatory options in bold, optionnal options in italic) 
 | GETTILE_PARAMS | *`level=<id>`*                                    | COUNT          |                                                                           | Count the GetTiles requests using the pivot TMS and optionnally the provided level                   |
 | GETTILE_PARAMS | *`level=<id>`*                                    | HEATMAP        | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Create an heat map of requested tiles on the provided area, optionnaly filtering with provided level |
 | GEOMETRY       | **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`** | GETTILE_PARAMS |                                                                           | Generate GetTile query parameters for tiles intersecting input geometries for the provided level     |
+
+Example (GETTILE_PARAMS -> HEATMAP) : 
+
+`tmsizer -i logs.txt --tms PM -io level=15 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`

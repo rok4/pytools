@@ -1,3 +1,11 @@
+## 1.5.0
+
+### [Added]
+
+* Outil TMSIZER : convertit des informations en d'autres en s'appuyant sur un TMS pivot. Conversions implémentées :
+    * GETTILE_PARAMS -> HEATMAP
+    * GETTILE_PARAMS -> COUNT
+    * GEOMETRY -> GETTILE_PARAMS
 
 ## 1.4.0
 

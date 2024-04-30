@@ -43,7 +43,7 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
 
 #### Configuration
 
-Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md bin/pyr2pyr.schema.json /dev/stdout`)
+Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/pyr2pyr_utils/schema.json /dev/stdout`)
 
 - **`logger`** *(object)*: Logger configuration.
     - **`layout`** *(string)*: Log format, according to logging python library. Default: `%(asctime)s %(levelname)s: %(message)s`.
@@ -63,13 +63,6 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
     - **`follow_links`** *(boolean)*: Do we follow links (data slabs in others pyramids than the 'from' one). Default: `False`.
     - **`slab_limit`** *(integer)*: Minimum slab size (if under, we do not copy). Minimum: `0`. Default: `0`.
 
-
-### MAKE-LAYER
-
-MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
-
-Utilisation : `make-layer [-h] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my data [--styles normal [normal ...]] [--title my data]`
-
 ### JOINCACHE
 
 L'outil JOINCACHE génèrent une pyramide raster à partir d'autres pyramide raster compatibles (même TMS, dalles de même dimensions, canaux au même format). La composition se fait verticalement (choix des pyramides sources par niveau) et horizontalement (choix des pyramides source par zone au sein d'un niveau).
@@ -78,7 +71,7 @@ Un exemple de configuration est affichable avec la commande `joincache --role ex
 
 #### Fonctionnement
 
-Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
+Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
 
 1. Rôle `master`
     * Actions : contrôle du fichier de configuration et des pyramides, identification du travail, génération des N TODO lists, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
@@ -94,22 +87,90 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
 
 Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/joincache_utils/schema.json /dev/stdout`)
 
-- **`logger`** *(object)*: Paramètres du logger.
-  - **`layout`** *(string)*: Format du log, selon la syntaxe Log4perl. Default: `%5p : %m (%M) %n`.
-  - **`file`** *(string)*: Chemin vers le fichier où écrire les logs. Les logs sont dans la sortie standard si ce paramètre n'est pas fourni.
-  - **`level`** *(string)*: Niveau de log. Must be one of: `['DEBUG', 'INFO', 'WARN', 'ERROR', 'ALWAYS']`. Default: `WARN`.
-- **`datasources`** *(array)*: Pyramides sources.
-  - **Items** *(object)*
-    - **`bottom`** *(string)*: Niveau du TMS de la pyramide en sortie pour lequel la source est utilisée.
-    - **`top`** *(string)*: Niveau du TMS de la pyramide en sortie jusqu'auquel la source sera utilisée.
-    - **`source`** *(object)*: Base PostgreSQL comme source de données.
-      - **`type`** *(string)*: Type de source. Must be one of: `['PYRAMIDS']`.
-      - **`descriptors`** *(array)*: Liste des chemins vers les descripteurs de pyramides (toutes doivent avoir les même caractéristiques (stockage, pixel, TMS...).
+- **`logger`** *(object)*: Paramètres du logger. Cannot contain additional properties.
+  - **`layout`** *(string)*: Log format, according to logging python library. Default: `"%(asctime)s %(levelname)s: %(message)s"`.
+  - **`file`** *(string)*: Path to log file. Standard output is used if not provided.
+  - **`level`** *(string)*: Log level. Must be one of: `["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]`. Default: `"WARNING"`.
+- **`datasources`** *(array)*: Source pyramids.
+  - **Items** *(object)*: Cannot contain additional properties.
+    - **`bottom`** *(string, required)*: Bottom level's usage for source pyramids.
+    - **`top`** *(string, required)*: Top level's usage for source pyramids.
+    - **`source`** *(object, required)*: Pyramids as data source. Cannot contain additional properties.
+      - **`type`** *(string, required)*: Source type. Must be one of: `["PYRAMIDS"]`.
+      - **`descriptors`** *(array, required)*: Paths to pyramids' descriptors (all with the same characteritics : TMS, formats...). Length must be at least 1.
         - **Items** *(string)*
-- **`pyramid`** *(object)*: Génération d'une nouvelle pyramide comme produit de fusion.
-  - **`name`** *(string)*: Nom de la nouvelle pyramide fusionnée.
-  - **`root`** *(string)*: Racine de stockage : un dossier pour le type FILE, le nom du pool en CEPH, le nom du bucket en S3 et le nom du container en SWIFT.
-  - **`mask`** *(boolean)*: Doit-on écrire les masques de données dans la pyramide en sortie. Si oui, ils seront utilisés dans les traitements. Default: `False`.
+- **`pyramid`** *(object)*: Output pyramid's storage informations. Cannot contain additional properties.
+  - **`name`** *(string, required)*: Output pyramid's name.
+  - **`root`** *(string, required)*: Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage.
+  - **`mask`** *(boolean)*: Mask export ? If true, masks are used for processing. Default: `false`.
+- **`process`** *(object)*: Processing parameters. Cannot contain additional properties.
+  - **`directory`** *(string, required)*: Directory to write copies to process, FILE directory or S3/CEPH prefix.
+  - **`parallelization`** *(integer)*: Parallelization level, number of todo lists and agents working at the same time. Minimum: `1`. Default: `1`.
+  - **`mask`** *(boolean)*: Source masks used for processing ? Default: `false`.
+  - **`only_links`** *(boolean)*: Only links are made ? If true, only top slab will be considered and linked. Default: `false`.
+
+
+### MAKE-LAYER
+
+MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
+
+Utilisation : `make-layer [-h] [--version] --pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...] --name my_data [--styles normal [normal ...]] [--title my data] [--abstract my data description] [--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}] [--directory s3://layers_bucket]`
+
+* `-h, --help` : affiche l'aide et quitte
+* `--version` : affiche la version et quitte
+* `--pyramids storage://path/to/pyr.json[>BOTTOM>TOP] [storage://path/to/pyr.json[>BOTTOM>TOP] ...]` : descripteur des pyramides à utiliser dans la couche et niveaux d'utilisation
+* `--name my_data` : nom technique de la couche
+* `--styles normal [normal ...]` : identifiants des styles disponibles pour la couche (pas de contrôle sur les identifiants)
+* `--title my data` : titre de la couche
+* `--abstract "my data description"` : résumé de la couche
+* `--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}` : type d'interpolation pour le réechantillonnage
+* `--directory s3://layers_bucket` : dossier, fichier ou objet, dans lequel écrire le descripteur de pyramide. Affiche dans la sortie standard si non fourni
+
+### PYROLYSE
+
+PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
+
+Concernant les tailles et les temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
+
+Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
+
+* `-h, --help` : affiche l'aide et quitte
+* `--version` : affiche la version et quitte
+* `--pyramid storage://path/to/pyr.json` : descripteur de la pyramide à analyser
+* `--output storage://path/to/conf.json` : fichier ou objet dans lequel écrire le résultat. Affiche dans la sortie standard si non fourni
+* `--tiles` : avoir l'analyse de la taille des tuiles
+* `--progress` : affiche une barre de progression, seulement avec l'option `--output`
+* `--deciles` : avoir les déciles plutôt que toutes les valeurs de taille et de temps d'accès
+* `--ratio N` : ratio à appliquer sur la mesure de taille (un parmi <ratio>, 100 par défaut). Toutes les dalles sont comptées
+
+### TMSIZER
+
+TMSIZER est un outil permettant de convertir des informations selon différents formats en accord avec un Tile Matrix Set en particulier. Les données en entrée peuvent être lues depuis un fichier, un objet ou l'entrée standard. Les données en sortie peuvent être écrites dans un fichier, un objet ou la sortie standard.
+
+Utilisation : `tmsizer [-h] [--version] --tms <TMS identifier> [-i storage://path/to/data] -if <format> [-io <KEY>:<VALUE> [<KEY>:<VALUE> ...]] [-o storage://path/to/results] -of <format> [-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...]] [--progress]`
+
+* `-h, --help` : affiche l'aide et quitte
+* `--version` : affiche la version et quitte
+* `--tms <TMS identifier>` : identifiant du TMS
+* `-i storage://path/to/data, --input storage://path/to/data` : fichier ou objet contenant la donnée en entrée. Lecture depuis l'entrée standard si non fourni
+* `-if <format>, --input-format <format>` : format des données en entrée
+* `-io <KEY>:<VALUE> [<KEY>:<VALUE> ...], --input-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options pour les données en entrée (dépend du format)
+* `-o storage://path/to/results, --output storage://path/to/results` : fichier ou objet où écrire la donnée en sortie. Écriture dans la sortie standard si non fourni
+* `-of <format>, --output-format <format>` : format des données en sortie
+* `-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...], --output-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options pour les données en sortie (dépend du format)
+* `--progress` : affiche une barre de progression, seulement avec l'option `--output`
+
+Conversions possibles (options obligatoires en gras, options facultatives en italique) :
+
+| Format en entrée | Options d'entrée | Format en sortie | Options de sortie                                             | Description                                                                                             |
+|------------------|------------------|------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| GETTILE_PARAMS   | *`level=<id>`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et l'éventuel niveau fourni  |
+| GETTILE_PARAMS   | *`level=<id>`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur l'éventuel niveau fourni |
+| GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles nu niveau fourni intersectant les géométries en entrée            |
+
+Exemple (GETTILE_PARAMS -> HEATMAP) : 
+
+`tmsizer -i logs.txt --tms PM -io level=15 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
 ## Compiler la suite d'outils
 

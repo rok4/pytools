@@ -1,3 +1,18 @@
+## 1.5.0
+
+### [Added]
+
+* Outil TMSIZER : convertit des informations en d'autres en s'appuyant sur un TMS pivot. Conversions implémentées :
+    * GETTILE_PARAMS -> HEATMAP
+    * GETTILE_PARAMS -> COUNT
+    * GEOMETRY -> GETTILE_PARAMS
+
+## 1.4.0
+
+### [Added]
+
+* Outil PYROLYSE : compile des statistiques (nombre de dalles / tuile, taille, temps d'accès) sur une pyramide de données, au global et par niveau
+
 ## 1.3.0
 
 ### [Added]

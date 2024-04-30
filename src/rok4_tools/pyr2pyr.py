@@ -87,7 +87,7 @@ def configuration() -> None:
         JSONDecodeError: Configuration is not a valid JSON file
         ValidationError: Configuration is not a valid PYR2PYR configuration file
         MissingEnvironmentError: Missing object storage informations
-        storageError: storage read issue
+        StorageError: storage read issue
         FileNotFoundError: File or object does not exist
     """
 
@@ -164,6 +164,10 @@ def main() -> None:
 
     except ValidationError as e:
         logging.error(f"{args.configuration} is not a valid configuration file: {e}")
+        sys.exit(1)
+
+    except FileNotFoundError as e:
+        logging.error(f"{e} does not exists")
         sys.exit(1)
 
     except Exception as e:

@@ -224,9 +224,9 @@ def test_datasources_with_same_level(mocked_from_other, mocked_source):
 @mock.patch("rok4_tools.joincache_utils.master.SourcePyramids")
 @mock.patch("rok4_tools.joincache_utils.master.Pyramid.from_other")
 def test_ok(mocked_from_other, mocked_source):
-    files = [f for f in os.listdir("tests/list_master")]
+    files = [f for f in os.listdir("tests/fixtures/list_master")]
     for file in files:
-        os.remove(os.path.join("tests/list_master", file))
+        os.remove(os.path.join("tests/fixtures/list_master", file))
     level6 = MagicMock()
     level6.id = "6"
     pyramid1 = MagicMock()
@@ -322,12 +322,12 @@ def test_ok(mocked_from_other, mocked_source):
             "parallelization": 3,
             "mask": True,
             "only_links": False,
-            "directory": "tests/list_master",
+            "directory": "tests/fixtures/list_master",
         },
     }
 
     resultat = work(config)
-    with open("tests/list_master/todo.1.list") as f:
+    with open("tests/fixtures/list_master/todo.1.list") as f:
         lignes = f.read()
 
     assert (

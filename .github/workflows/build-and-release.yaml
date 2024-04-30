@@ -164,8 +164,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./dist/rok4-tools-${{ github.ref_name }}.tar.gz
-          asset_name: rok4-tools-${{ github.ref_name }}.tar.gz
+          asset_path: ./dist/rok4_tools-${{ github.ref_name }}.tar.gz
+          asset_name: rok4_tools-${{ github.ref_name }}.tar.gz
           asset_content_type: application/zip
 
       - name: Isolate wheel and tarball

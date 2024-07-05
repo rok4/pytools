@@ -1,3 +1,9 @@
+## 1.5.1
+
+### [Added]
+
+* Outil TMSIZER : ajout d'une option pour filtrer sur la couche pour le format en entrée GETTILE_PARAMS
+
 ## 1.5.0
 
 ### [Added]

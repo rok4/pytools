@@ -164,13 +164,13 @@ Conversions possibles (options obligatoires en gras, options facultatives en ita
 
 | Format en entrée | Options d'entrée | Format en sortie | Options de sortie                                             | Description                                                                                             |
 |------------------|------------------|------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| GETTILE_PARAMS   | *`level=<id>`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et l'éventuel niveau fourni  |
-| GETTILE_PARAMS   | *`level=<id>`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur l'éventuel niveau fourni |
+| GETTILE_PARAMS   | *`level=<id>`*,*`layer=<id>`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et les éventuels niveau et couche fournis  |
+| GETTILE_PARAMS   | *`level=<id>`*,*`layer=<id>`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur les éventuels niveau et couche fournis |
 | GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles nu niveau fourni intersectant les géométries en entrée            |
 
 Exemple (GETTILE_PARAMS -> HEATMAP) : 
 
-`tmsizer -i logs.txt --tms PM -io level=15 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
+`tmsizer -i logs.txt --tms PM -io level=15 -io layer=LAYER.NAME -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
 ## Compiler la suite d'outils
 

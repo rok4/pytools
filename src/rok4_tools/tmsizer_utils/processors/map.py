@@ -31,6 +31,7 @@ class Gettile2tileindexProcessor(Processor):
     Attributes:
         __input (Processor): Processor from which data is read
         __level (str, optional): Tile matrix identifier to filter data
+        __layer (str, optional): Layer to filter data
     """
 
     input_formats_allowed = ["GETTILE_PARAMS"]
@@ -41,6 +42,7 @@ class Gettile2tileindexProcessor(Processor):
         Args:
             input (Processor): Processor from which data is read
             **level (str, optional): Tile matrix identifier to filter data
+            **layer (str, optional): Layer to filter data
 
         Raises:
             ValueError: Input format is not allowed
@@ -60,12 +62,18 @@ class Gettile2tileindexProcessor(Processor):
         else:
             self.__level = None
 
+        self.__input = input
+        if "layer" in options.keys():
+            self.__layer = options["layer"]
+        else:
+            self.__layer = None
+
     def process(self) -> Iterator[Tuple[str, int, int]]:
         """Read an item from the input processor and extract tile index
 
         Used query parameters are TILEMATRIXSET, TILEMATRIX, TILECOL and TILEROW. If one is missing, item is passed. 
         TILEMATRISET have to be the pivot TMS's name (or just preffixed by its name). TILEMATRIX have to be present in the pivot TMS. 
-        If a filtering level is provided, different TILEMATRIX are passed.
+        If a filtering level is provided, different TILEMATRIX are passed. If a filtering layer is provided, different LAYER are passed.
 
         Examples:
 
@@ -95,6 +103,10 @@ class Gettile2tileindexProcessor(Processor):
 
                     # On se limite à un niveau et ce n'est pas celui de la requête
                     if self.__level is not None and qs["TILEMATRIX"][0] != self.__level:
+                        continue
+
+                    # On se limite à une couche et ce n'est pas celle de la requête
+                    if self.__layer is not None and qs["LAYER"][0] != self.__layer:
                         continue
 
                     # La requête n'utilise pas le TMS en entrée

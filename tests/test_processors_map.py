@@ -25,7 +25,7 @@ def test_gettile2tileindexprocessor():
     ])
 
     try:
-        processor = Gettile2tileindexProcessor(processor_instance, level="20")
+        processor = Gettile2tileindexProcessor(processor_instance, levels="20")
 
     except Exception as exc:
         assert False, f"Gettile2tileindexProcessor usage raises an exception: {exc}"

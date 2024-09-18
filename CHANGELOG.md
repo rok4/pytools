@@ -2,7 +2,12 @@
 
 ### [Added]
 
-* Outil TMSIZER : ajout d'une option pour filtrer sur la couche pour le format en entrée GETTILE_PARAMS
+* Outil TMSIZER : ajout d'une option pour filtrer sur la couche pour le format en entrée GETTILE_PARAMS : fourniture d'une liste de couches avec l'option `layers`
+
+### [Changed]
+
+* Outil TMSIZER : modification de l'option pour filtrer sur le niveau pour le format en entrée GETTILE_PARAMS : fourniture d'une liste de niveaux et l'option `level` devient `levels`
+
 
 ## 1.5.0
 

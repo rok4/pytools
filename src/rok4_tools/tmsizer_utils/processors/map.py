@@ -30,8 +30,8 @@ class Gettile2tileindexProcessor(Processor):
 
     Attributes:
         __input (Processor): Processor from which data is read
-        __level (str, optional): Tile matrix identifier to filter data
-        __layer (str, optional): Layer to filter data
+        __levels (List[str], optional): Tile matrix identifier(s) to filter data
+        __layers (List[str], optional): Layer(s) to filter data
     """
 
     input_formats_allowed = ["GETTILE_PARAMS"]
@@ -41,8 +41,8 @@ class Gettile2tileindexProcessor(Processor):
 
         Args:
             input (Processor): Processor from which data is read
-            **level (str, optional): Tile matrix identifier to filter data
-            **layer (str, optional): Layer to filter data
+            **levels (str, optional): Tile matrix identifier(s) to filter data
+            **layers (str, optional): Layer(s) to filter data
 
         Raises:
             ValueError: Input format is not allowed
@@ -55,25 +55,26 @@ class Gettile2tileindexProcessor(Processor):
         super().__init__("TILE_INDEX")
 
         self.__input = input
-        if "level" in options.keys():
-            if self.tms.get_level(options["level"]) is None:
-                raise ValueError(f"Provided level is not in the TMS")
-            self.__level = options["level"]
+        if "levels" in options.keys():
+            self.__levels = options["levels"].split(",")
+            for l in self.__levels:
+                if self.tms.get_level(l) is None:
+                    raise ValueError(f"The provided level '{l}' is not in the TMS")
         else:
-            self.__level = None
+            self.__levels = None
 
         self.__input = input
-        if "layer" in options.keys():
-            self.__layer = options["layer"]
+        if "layers" in options.keys():
+            self.__layers = options["layers"].split(",")
         else:
-            self.__layer = None
+            self.__layers = None
 
     def process(self) -> Iterator[Tuple[str, int, int]]:
         """Read an item from the input processor and extract tile index
 
         Used query parameters are TILEMATRIXSET, TILEMATRIX, TILECOL and TILEROW. If one is missing, item is passed. 
         TILEMATRISET have to be the pivot TMS's name (or just preffixed by its name). TILEMATRIX have to be present in the pivot TMS. 
-        If a filtering level is provided, different TILEMATRIX are passed. If a filtering layer is provided, different LAYER are passed.
+        If filtering levels are provided, unmatched TILEMATRIX are passed. If filtering layers are provided, unmatched LAYER are passed.
 
         Examples:
 
@@ -102,11 +103,11 @@ class Gettile2tileindexProcessor(Processor):
                 try:
 
                     # On se limite à un niveau et ce n'est pas celui de la requête
-                    if self.__level is not None and qs["TILEMATRIX"][0] != self.__level:
+                    if self.__levels is not None and qs["TILEMATRIX"][0] not in self.__levels:
                         continue
 
                     # On se limite à une couche et ce n'est pas celle de la requête
-                    if self.__layer is not None and qs["LAYER"][0] != self.__layer:
+                    if self.__layers is not None and qs["LAYER"][0] not in self.__layers:
                         continue
 
                     # La requête n'utilise pas le TMS en entrée

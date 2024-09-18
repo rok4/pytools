@@ -200,7 +200,7 @@ def load_conversion() -> None:
         elif args.output_format == "HEATMAP":
             conversion_processor = HeatmapProcessor(Tileindex2pointProcessor(tp), **output_options)
 
-    if args.input_format == "GEOMETRY":
+    elif args.input_format == "GEOMETRY":
         tp = Geometry2tileindexProcessor(reader_processor, **input_options)
 
         if args.output_format == "GETTILE_PARAMS":
@@ -224,6 +224,7 @@ def load_writer() -> None:
 
 def work() -> None:
     status = writer_processor.process().__next__()
+    print(conversion_processor)
 
 def main() -> None:
 

@@ -160,17 +160,17 @@ Utilisation : `tmsizer [-h] [--version] --tms <TMS identifier> [-i storage://pat
 * `-oo <KEY>:<VALUE> [<KEY>:<VALUE> ...], --output-option <KEY>:<VALUE> [<KEY>:<VALUE> ...]` : options pour les données en sortie (dépend du format)
 * `--progress` : affiche une barre de progression, seulement avec l'option `--output`
 
-Conversions possibles (options obligatoires en gras, options facultatives en italique) :
+Conversions possibles (paramètres obligatoires en gras, paramètres facultatifs en italique) :
 
 | Format en entrée | Options d'entrée | Format en sortie | Options de sortie                                             | Description                                                                                             |
 |------------------|------------------|------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| GETTILE_PARAMS   | *`level=<id>`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et l'éventuel niveau fourni  |
-| GETTILE_PARAMS   | *`level=<id>`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur l'éventuel niveau fourni |
-| GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles nu niveau fourni intersectant les géométries en entrée            |
+| GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et les éventuels niveaux et couches fournies  |
+| GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur les éventuels niveau et couche fournis |
+| GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles du niveau fourni intersectant les géométries en entrée            |
 
 Exemple (GETTILE_PARAMS -> HEATMAP) : 
 
-`tmsizer -i logs.txt --tms PM -io level=15 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
+`tmsizer -i logs.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
 ## Compiler la suite d'outils
 

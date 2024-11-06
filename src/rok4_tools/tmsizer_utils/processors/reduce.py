@@ -85,6 +85,12 @@ class HeatmapProcessor(Processor):
 
     input_formats_allowed = ["POINT"]
 
+    areas = {
+        "EPSG:3857": {
+            "FXX": [-649498, 5048729, 1173394, 6661417]
+        }
+    }
+
     def __init__(self, input: Processor, **options):
         """Constructor method
 
@@ -107,7 +113,7 @@ class HeatmapProcessor(Processor):
 
         self.__input = input
 
-        try:
+        if "bbox" in options:
             try:
                 self.__bbox = [float(c) for c in options["bbox"].split(",")]
                 self.__bbox = tuple(self.__bbox)
@@ -117,6 +123,18 @@ class HeatmapProcessor(Processor):
             if len(self.__bbox) != 4 or self.__bbox[0] >= self.__bbox[2] or self.__bbox[1] >= self.__bbox[3]:
                 raise ValueError(f"Option 'bbox' have to be provided with format <xmin>,<ymin>,<xmax>,<ymax> (floats, min < max)")
 
+        elif "area" in options:
+            try:
+                self.__bbox = self.areas[self.tms.srs][options["area"]]
+            except KeyError as e:
+                if self.tms.srs in self.areas:
+                    raise ValueError(f"Area '{options['area']}' is not available for the TMS coordinates system ({self.tms.srs}): available areas are {', '.join(self.areas[self.tms.srs].keys())}")
+                else :
+                    raise ValueError(f"No defined areas for the TMS coordinates system ({self.tms.srs})")
+        else:
+            raise KeyError(f"Option 'bbox' or 'area' is required for a heatmap processing")
+
+        if "dimensions" in options:
             try:
                 self.__dimensions = [int(d) for d in options["dimensions"].split("x")]
                 self.__dimensions = tuple(self.__dimensions)
@@ -130,9 +148,39 @@ class HeatmapProcessor(Processor):
                 (self.__bbox[2] - self.__bbox[0]) / self.__dimensions[0],
                 (self.__bbox[3] - self.__bbox[1]) / self.__dimensions[1]
             )
+        elif "level" in options:
+            level = self.tms.get_level(options["level"])
+            if level is None:
+                raise ValueError(f"The provided level '{options['dimensions']}' (to have one pixel per tile) is not in the TMS")
 
-        except KeyError as e:
-            raise KeyError(f"Option {e} is required for a heatmap processing")
+            # On va caler la bbox pour qu'elle coïncide avec les limites de tuiles du niveau demandé
+            (col_min, row_min, col_max, row_max) = level.bbox_to_tiles(self.__bbox)
+
+            # Calage du coin en bas à gauche
+            (xmin, ymin, xmax, ymax) = level.tile_to_bbox(col_min, row_max)
+            self.__bbox[0] = xmin
+            self.__bbox[1] = ymin
+
+            # Calage du coin en haut à droite
+            (xmin, ymin, xmax, ymax) = level.tile_to_bbox(col_max, row_min)
+            self.__bbox[2] = xmax
+            self.__bbox[3] = ymax
+
+            self.__resolutions = (
+                xmax - xmin,
+                ymax - ymin
+            )
+
+            self.__dimensions = (
+                int((self.__bbox[2] - self.__bbox[0]) / self.__resolutions[0]),
+                int((self.__bbox[3] - self.__bbox[1]) / self.__resolutions[1])
+            )
+
+        else:
+            raise KeyError(f"Option 'dimensions' or 'level' is required for a heatmap processing")
+
+        if self.__dimensions[0] > 10000 or self.__dimensions[1] > 10000:
+            raise ValueError(f"Heatmap dimensions have to be less than 10 000 x 10 000: here it's {self.__dimensions}")
 
     def process(self) -> Iterator[MemoryFile]:
         """Read point coordinates from the input processor and accumule them as a heat map
@@ -194,4 +242,4 @@ class HeatmapProcessor(Processor):
         yield memfile
 
     def __str__(self) -> str:
-        return f"HeatmapProcessor : {self._processed} hits on image with dimensions {self.__dimensions} and bbox {self.__bbox}"
+        return f"HeatmapProcessor : {self._processed} hits on image with dimensions {self.__dimensions} and bbox {self.__bbox} (resolutions {self.__resolutions})"

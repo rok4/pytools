@@ -1,3 +1,9 @@
+## 1.5.2
+
+### [Added]
+
+* Outil TMSIZER : possibilité de préciser une aire prédéinie à la place de la bbox et un niveau à la place des dimensions pour l'écriture d'une heatmap (une tuile du niveau correspondra à un pixel)
+
 ## 1.5.1
 
 ### [Added]

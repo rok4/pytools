@@ -164,10 +164,18 @@ Availables conversions (mandatory options in bold, optionnal options in italic) 
 | Input format   | Input options                                     | Output format  | Output options                                                            | Description                                                                                          |
 |----------------|---------------------------------------------------|----------------|---------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
 | GETTILE_PARAMS | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*                                    | COUNT          |                                                                           | Count the GetTiles requests using the pivot TMS and optionnally the provided level and layer                   |
-| GETTILE_PARAMS | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*                                    | HEATMAP        | **`bbox=<xmin>,<ymin>,<xmax>,<ymax>`**, **`dimensions=<width>x<height>`** | Create an heat map of requested tiles on the provided area, optionnaly filtering with provided level and layer |
+| GETTILE_PARAMS | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*                                    | HEATMAP        | **`bbox=<xmin>,<ymin>,<xmax>,<ymax> or area=<id>`**, **`dimensions=<width>x<height> or level=<id>`** | Create an heat map of requested tiles on the provided area, optionnaly filtering with provided level and layer |
 | GEOMETRY       | **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`** | GETTILE_PARAMS |                                                                           | Generate GetTile query parameters for tiles intersecting input geometries for the provided level     |
+
+Available areas for a heatmap :
+
+* `EPSG:3857`
+  * `FXX` (European France)
 
 Example (GETTILE_PARAMS -> HEATMAP) : 
 
-
 `tmsizer -i logs.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
+
+Example (GETTILE_PARAMS -> HEATMAP) with predefined area and pixel-level superposition: 
+
+`tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`

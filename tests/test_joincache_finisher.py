@@ -16,7 +16,8 @@ def test_ok(mocked_copy, mocked_from_other, mocked_source):
     for file in files:
         print(file)
         shutil.copy2(
-            os.path.join("tests/fixtures/list_agent", file), os.path.join("tests/fixtures/list_finisher", file)
+            os.path.join("tests/fixtures/list_agent", file),
+            os.path.join("tests/fixtures/list_finisher", file),
         )
     level6 = MagicMock()
     level6.id = "6"
@@ -105,7 +106,12 @@ def test_ok(mocked_copy, mocked_from_other, mocked_source):
     storage_pyramid = {"type": StorageType.S3, "root": "bucket"}
 
     work(config)
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
     mocked_from_other.assert_called_once_with(
         source1.pyramids[0], "joincache.png", storage_pyramid, mask=True
     )

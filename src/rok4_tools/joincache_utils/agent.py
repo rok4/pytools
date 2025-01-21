@@ -1,10 +1,10 @@
 import os
 import tempfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict
 
 from rok4 import storage
 from rok4.enums import SlabType
-from rok4.pyramid import Level, Pyramid
+from rok4.pyramid import Pyramid
 
 
 def work(config: Dict, split: int) -> None:
@@ -58,17 +58,16 @@ def work(config: Dict, split: int) -> None:
             )
             have_to_work = False
 
-        raster_specifications = pyramid.raster_specifications
         format = pyramid.format
-        compression = format.split("_")[1].lower()
+        format.split("_")[1].lower()
         if "UINT" in format:
-            format_channel = "uint"
+            pass
         elif "FLOAT" in format:
-            format_channel = "float"
+            pass
         if "8" in format:
-            bits_channel = "8"
+            pass
         elif "32" in format:
-            bits_channel = "32"
+            pass
 
         multiple_slabs = False
         with open(todo_list_obj.name) as file:
@@ -80,7 +79,7 @@ def work(config: Dict, split: int) -> None:
                     if not have_to_work:
                         if parts[1] == last_done_slab:
                             # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
-                            logging.info(f"Last copied slab reached, copies can start again")
+                            logging.info("Last copied slab reached, copies can start again")
                             have_to_work = True
 
                         continue
@@ -98,7 +97,7 @@ def work(config: Dict, split: int) -> None:
                         )
                         result_value = os.system(f"cache2work -c zip {parts[1]} {data_file.name}")
                         if result_value != 0:
-                            raise Exception(f"cache2work raises an error")
+                            raise Exception("cache2work raises an error")
                         data = [data_file]
                         mask = [""]
                         multiple_slabs = True
@@ -112,7 +111,7 @@ def work(config: Dict, split: int) -> None:
                                 f"cache2work -c zip {parts[1]} {mask_file.name}"
                             )
                             if result_value != 0:
-                                raise Exception(f"cache2work raises an error")
+                                raise Exception("cache2work raises an error")
                             mask[i] = mask_file
                         else:
                             i += 1
@@ -123,7 +122,7 @@ def work(config: Dict, split: int) -> None:
                                 f"cache2work -c zip {parts[1]} {data_file.name}"
                             )
                             if result_value != 0:
-                                raise Exception(f"cache2work raises an error")
+                                raise Exception("cache2work raises an error")
                             data += [data_file]
                             mask += [""]
 
@@ -154,10 +153,10 @@ def work(config: Dict, split: int) -> None:
                     with open(fichier.name, "w") as f:
                         f.write(file_tiff)
                     result_value = os.system(
-                        f"overlayNtiff -f {fichier.name} -m TOP -b {raster_specifications['nodata']} -c zip -s {raster_specifications['channels']} -p {raster_specifications['photometric']}"
+                        f"overlayNtiff -f {fichier.name} -m TOP -b {pyramid.nodata} -c zip -s {pyramid.channels} -p {pyramid.photometric}"
                     )
                     if result_value != 0:
-                        raise Exception(f"overlayNtiff raises an error")
+                        raise Exception("overlayNtiff raises an error")
                     storage.remove(f"file://{fichier.name}")
                     for i in range(len(data)):
                         storage.remove(f"file://{data[i].name}")
@@ -172,7 +171,7 @@ def work(config: Dict, split: int) -> None:
                     if not have_to_work:
                         if parts[1] == last_done_slab:
                             # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
-                            logging.info(f"Last copied slab reached, copies can start again")
+                            logging.info("Last copied slab reached, copies can start again")
                             have_to_work = True
 
                         continue
@@ -185,22 +184,22 @@ def work(config: Dict, split: int) -> None:
                     if slab_type == SlabType.DATA:
                         level = pyramid.get_infos_from_slab_path(parts[1])[1]
                         tile_width = pyramid.tms.get_level(level).tile_width
-                        tile_heigth = pyramid.tms.get_level(level).tile_heigth
+                        tile_height = pyramid.tms.get_level(level).tile_height
                         result_value = os.system(
-                            f"work2cache -c {compression} -t {tile_width} {tile_heigth} -a {format_channel} -b {bits_channel} -s {raster_specifications['channels']} {result.name} {parts[1]}"
+                            f"work2cache -c {pyramid.compression.lower()} -t {tile_width} {tile_height} -a {pyramid.sample_format} -s {pyramid.channels} {result.name} {parts[1]}"
                         )
                         if result_value != 0:
-                            raise Exception(f"work2cache raises an error")
+                            raise Exception("work2cache raises an error")
                         storage.remove(f"file://{result.name}")
                     elif slab_type == SlabType.MASK:
                         level = pyramid.get_infos_from_slab_path(parts[1])[1]
                         tile_width = pyramid.tms.get_level(level).tile_width
-                        tile_heigth = pyramid.tms.get_level(level).tile_heigth
+                        tile_height = pyramid.tms.get_level(level).tile_height
                         result_value = os.system(
-                            f"work2cache -c zip -t {tile_width} {tile_heigth} -a {format_channel} -b {bits_channel} -s {raster_specifications['channels']} {result_mask.name} {parts[1]}"
+                            f"work2cache -c zip -t {tile_width} {tile_height} -a {pyramid.sample_format} -s 1 {result_mask.name} {parts[1]}"
                         )
                         if result_value != 0:
-                            raise Exception(f"work2cache raises an error")
+                            raise Exception("work2cache raises an error")
                         storage.remove(f"file://{result_mask.name}")
 
         # On nettoie les fichiers locaux et comme tout s'est bien passé, on peut supprimer aussi le fichier local du travail fait

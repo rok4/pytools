@@ -1,10 +1,9 @@
 import logging
 import os
 import tempfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict
 
 from rok4 import storage
-from rok4.pyramid import Pyramid
 
 
 def work(config: Dict, split: int) -> None:
@@ -23,7 +22,7 @@ def work(config: Dict, split: int) -> None:
     Raises:
         Exception: Cannot get todo list
         Exception: Invalid todo list line
-        storageError: Slab copy issue
+        StorageError: Slab copy issue
         MissingEnvironmentError: Missing object storage informations
     """
 
@@ -65,7 +64,7 @@ def work(config: Dict, split: int) -> None:
             if not have_to_work:
                 if parts[2] == last_done_slab:
                     # On est retombé sur la dernière dalles traitées, on passe à la suivante mais on arrête de passer
-                    logging.info(f"Last copied slab reached, copies can start again")
+                    logging.info("Last copied slab reached, copies can start again")
                     have_to_work = True
 
                 continue

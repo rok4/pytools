@@ -1,5 +1,4 @@
 import os
-import subprocess
 from unittest import mock
 from unittest.mock import *
 
@@ -15,13 +14,13 @@ def test_different_tms(mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
 
     source2 = MagicMock()
     source2.tms.name = "WLD"
     source2.format = "TIFF_PNG_UINT8"
     source2.channels = 3
-    source2.type = PyramidType.RASTER
+    source2.pyramids_type = PyramidType.RASTER
 
     mocked_source.side_effect = [source1, source2]
     config = {
@@ -31,10 +30,15 @@ def test_different_tms(mocked_source):
         ]
     }
     with pytest.raises(Exception) as exc:
-        resultat = work(config)
-    assert "Sources pyramids cannot have two different TMS" in str(exc.value)
+        work(config)
+    assert "Pyramids sources cannot have two different TMS" in str(exc.value)
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
 
 
 @mock.patch("rok4_tools.joincache_utils.master.SourcePyramids")
@@ -43,13 +47,13 @@ def test_different_format(mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
 
     source2 = MagicMock()
     source2.tms.name = "PM"
     source2.format = "TIFF_PNG_UINT16"
     source2.channels = 3
-    source2.type = PyramidType.RASTER
+    source2.pyramids_type = PyramidType.RASTER
 
     mocked_source.side_effect = [source1, source2]
     config = {
@@ -59,10 +63,15 @@ def test_different_format(mocked_source):
         ]
     }
     with pytest.raises(Exception) as exc:
-        resultat = work(config)
-    assert "Sources pyramids cannot have two different format" in str(exc.value)
+        work(config)
+    assert "Pyramids sources cannot have two different format" in str(exc.value)
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
 
 
 @mock.patch("rok4_tools.joincache_utils.master.SourcePyramids")
@@ -71,13 +80,13 @@ def test_different_channels(mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
 
     source2 = MagicMock()
     source2.tms.name = "PM"
     source2.format = "TIFF_PNG_UINT8"
     source2.channels = 1
-    source2.type = PyramidType.RASTER
+    source2.pyramids_type = PyramidType.RASTER
 
     mocked_source.side_effect = [source1, source2]
     config = {
@@ -87,10 +96,15 @@ def test_different_channels(mocked_source):
         ]
     }
     with pytest.raises(Exception) as exc:
-        resultat = work(config)
-    assert "Sources pyramids cannot have two different numbers of channels" in str(exc.value)
+        work(config)
+    assert "Pyramids sources cannot have two different numbers of channels" in str(exc.value)
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
 
 
 @mock.patch("rok4_tools.joincache_utils.master.SourcePyramids")
@@ -99,13 +113,13 @@ def test_not_raster(mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
 
     source2 = MagicMock()
     source2.tms.name = "PM"
     source2.format = "TIFF_PNG_UINT8"
     source2.channels = 3
-    source2.type = PyramidType.VECTOR
+    source2.pyramids_type = PyramidType.VECTOR
 
     mocked_source.side_effect = [source1, source2]
     config = {
@@ -115,10 +129,15 @@ def test_not_raster(mocked_source):
         ]
     }
     with pytest.raises(Exception) as exc:
-        resultat = work(config)
-    assert "Some sources pyramids are not a raster" in str(exc.value)
+        work(config)
+    assert "A pyramids source is not a raster one" in str(exc.value)
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
 
 
 @mock.patch("rok4_tools.joincache_utils.master.SourcePyramids")
@@ -130,7 +149,7 @@ def test_false_name_S3(mocked_from_other, mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
     source1.pyramids = [pyramid1]
 
     pyramid2 = MagicMock()
@@ -139,8 +158,7 @@ def test_false_name_S3(mocked_from_other, mocked_source):
     source2.tms.name = "PM"
     source2.format = "TIFF_PNG_UINT8"
     source2.channels = 3
-    source2.type = PyramidType.RASTER
-    source2.type = PyramidType.RASTER
+    source2.pyramids_type = PyramidType.RASTER
     source2.pyramids = [pyramid2]
 
     mocked_source.side_effect = [source1, source2]
@@ -160,10 +178,15 @@ def test_false_name_S3(mocked_from_other, mocked_source):
         "process": {"parallelization": 3},
     }
     with pytest.raises(Exception) as exc:
-        resultat = work(config)
+        work(config)
     assert "Do not set S3 cluster host into output bucket name" in str(exc.value)
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
     mocked_from_other.assert_called_once_with(
         source1.pyramids[0], "blabla/joincache.png", storage_pyramid, mask="true"
     )
@@ -181,7 +204,7 @@ def test_datasources_with_same_level(mocked_from_other, mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
     source1.pyramids = [pyramid1]
 
     pyramid2 = MagicMock()
@@ -191,8 +214,7 @@ def test_datasources_with_same_level(mocked_from_other, mocked_source):
     source2.tms.name = "PM"
     source2.format = "TIFF_PNG_UINT8"
     source2.channels = 3
-    source2.type = PyramidType.RASTER
-    source2.type = PyramidType.RASTER
+    source2.pyramids_type = PyramidType.RASTER
     source2.pyramids = [pyramid2]
 
     mocked_source.side_effect = [source1, source2]
@@ -212,10 +234,15 @@ def test_datasources_with_same_level(mocked_from_other, mocked_source):
         "process": {"parallelization": 3},
     }
     with pytest.raises(Exception) as exc:
-        resultat = work(config)
+        work(config)
     assert "Different datasources cannot define the same level" in str(exc.value)
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("6", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("6", "16", config["datasources"][1]["source"]),
+        ]
+    )
     mocked_from_other.assert_called_once_with(
         source1.pyramids[0], "joincache.png", storage_pyramid, mask="true"
     )
@@ -269,7 +296,7 @@ def test_ok(mocked_from_other, mocked_source):
     source1.tms.name = "PM"
     source1.format = "TIFF_PNG_UINT8"
     source1.channels = 3
-    source1.type = PyramidType.RASTER
+    source1.pyramids_type = PyramidType.RASTER
     source1.pyramids = [pyramid1, pyramid3]
 
     level11 = MagicMock()
@@ -292,8 +319,7 @@ def test_ok(mocked_from_other, mocked_source):
     source2.tms.name = "PM"
     source2.format = "TIFF_PNG_UINT8"
     source2.channels = 3
-    source2.type = PyramidType.RASTER
-    source2.type = PyramidType.RASTER
+    source2.pyramids_type = PyramidType.RASTER
     source2.pyramids = [pyramid2]
 
     mocked_source.side_effect = [source1, source2]
@@ -326,7 +352,7 @@ def test_ok(mocked_from_other, mocked_source):
         },
     }
 
-    resultat = work(config)
+    work(config)
     with open("tests/fixtures/list_master/todo.1.list") as f:
         lignes = f.read()
 
@@ -335,7 +361,12 @@ def test_ok(mocked_from_other, mocked_source):
         == "c2w s3://path/DATA_6_1_1\nc2w s3://path/MASK_6_1_1\nc2w s3://path3/DATA_6_1_1\nc2w s3://path3/MASK_6_1_1\noNt\nw2c s3://path_final/DATA_6_1_1\nw2c s3://path_final/MASK_6_1_1\nlink s3://path_final/DATA_11_1_1 s3://path2/DATA_11_1_1 2\n"
     )
 
-    mocked_source.assert_has_calls([call("6", "10", ["path"]), call("11", "16", ["path2"])])
+    mocked_source.assert_has_calls(
+        [
+            call("6", "10", config["datasources"][0]["source"]),
+            call("11", "16", config["datasources"][1]["source"]),
+        ]
+    )
     mocked_from_other.assert_called_once_with(
         source1.pyramids[0], "joincache.png", storage_pyramid, mask=True
     )

@@ -2,7 +2,7 @@ import itertools
 import logging
 import os
 import tempfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict
 
 from rok4 import storage
 from rok4.pyramid import Pyramid
@@ -25,7 +25,7 @@ def work(config: Dict) -> None:
     Raises:
         Exception: Cannot load the input or the output pyramid
         Exception: Cannot write temporary todo lists
-        storageError: Cannot read source pyramid list
+        StorageError: Cannot read source pyramid list
         MissingEnvironmentError: Missing object storage informations
     """
 

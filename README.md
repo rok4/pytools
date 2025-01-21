@@ -110,6 +110,82 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
   - **`only_links`** *(boolean)*: Only links are made ? If true, only top slab will be considered and linked. Default: `false`.
 
 
+### ASPYRO
+
+L'outil ASPYRO génèrent une pyramide raster à de services WMS. Seuls les TMS de type quad tree sont gérés. Pour chaque source WMS, le niveau le plus bas est moissoné (requêtes WMS getmap) et les niveaux supérieurs sont calculés par sous échantillonnage 4 par 4 (command merge4tiff).
+
+Un exemple de configuration est affichable avec la commande `joincache --role example` et l'appel `joincache --role check --conf conf.json` permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : `s3://bucket/configuration.json`)
+
+#### Fonctionnement
+
+Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
+
+1. Rôle `master`
+    * Actions : contrôle du fichier de configuration et des sources WMS, identification du travail, génération des N TODO lists pour les agents et de celle du finisher, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
+    * Appel : `aspyro --role master --conf conf.json`
+2. Rôle `agent` :
+    * Actions : lecture de sa TODO list depuis le dossier de traitement et traitement de chaque ligne
+    * Appel (un appel par TODO list) : `aspyro --role agent --conf conf.json --split X`
+3. Rôle `finisher` :
+    * Actions : lecture de sa TODO list depuis le dossier de traitement et traitement de chaque ligne, puis lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
+    * Appel : `aspyro --role finisher --conf conf.json`
+
+![Enchaînement ASPYRO](./docs/images/aspyro.png)
+
+#### Configuration
+
+Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/aspyro_utils/schema.json /dev/stdout`)
+
+- **`logger`** *(object)*: Logger configuration. Cannot contain additional properties.
+  - **`layout`** *(string)*: Log format, according to logging python library. Default: `"%(asctime)s %(levelname)s: %(message)s"`.
+  - **`file`** *(string)*: Path to log file. Standard output is used if not provided.
+  - **`level`** *(string)*: Log level. Must be one of: `["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "NOTSET"]`. Default: `"WARNING"`.
+- **`datasources`** *(array)*: Source WMS service.
+  - **Items** *(object)*: Cannot contain additional properties.
+    - **`bottom`** *(string, required)*: Bottom level's usage for WMS service.
+    - **`top`** *(string, required)*: Top level's usage for WMS service.
+    - **`source`** *(object, required)*: WMS services as data source. Cannot contain additional properties.
+      - **`type`** *(string, required)*: Source type. Must be one of: `["WMS"]`.
+      - **`endpoint`** *(string, required)*: URL of the WMS service.
+      - **`area`**
+        - **One of**
+          - *object*: Bounding box to harvest.
+            - **`srs`** *(string, required)*: Bounding box's coordinate system.
+            - **`bbox`** *(array, required)*: Bounding box, in the provided coordinate system. Length must be equal to 4.
+              - **Items** *(number)*
+          - *object*: WKT geometry to harvest.
+            - **`srs`** *(string, required)*: Geometry's coordinate system.
+            - **`geometry`** *(string, required)*: WKT geometry, in the provided coordinate system.
+          - *object*: File or object containing the geometry to harvest.
+            - **`srs`** *(string, required)*: Geometry's coordinate system.
+            - **`path`** *(string, required)*: File or object containing a WKT or a GeoJSON geometry, in the provided coordinate system.
+      - **`format`** *(string)*: Format of requested images. Default: `"image/jpeg"`.
+      - **`layers`** *(array, required)*: Layers to request with GetMap. Length must be at least 1.
+        - **Items** *(string)*
+      - **`styles`** *(array)*: Styles for GetMap requests. If provided, have to be the same length than the layers list. Length must be at least 1.
+        - **Items** *(string)*
+      - **`max_size`** *(array)*: Maximum pixel width and height of image to download. Have to be a divisor of final slab size. Length must be equal to 2. Default: `[16, 16]`.
+        - **Items** *(integer)*: Minimum: `256`.
+      - **`extra_params`** *(object)*: Additionnal query parameters to add to each WMS requests.
+- **`pyramid`** *(object)*: Output pyramid's storage informations. Cannot contain additional properties.
+  - **`name`** *(string, required)*: Output pyramid's name.
+  - **`tms`** *(string, required)*: Output pyramid's TMS identifier.
+  - **`slab_size`** *(array)*: Nombre de tuiles dans la dalle, dans le sens de la largeur puis de la hauteur. Length must be equal to 2. Default: `[16, 16]`.
+    - **Items** *(integer)*: Minimum: `1`.
+  - **`compression`** *(string)*: Output pyramid's compression. Must be one of: `["none", "jpg", "png", "jpg90", "zip", "lzw", "pkb"]`. Default: `"none"`.
+  - **`storage`** *(object, required)*: Cannot contain additional properties.
+    - **`type`** *(string, required)*: Storage type. Must be one of: `["FILE", "S3", "CEPH"]`.
+    - **`root`** *(string, required)*: Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage.
+    - **`depth`** *(integer)*: Tree depth, only for FILE storage. Minimum: `1`. Default: `2`.
+  - **`pixel`** *(object, required)*
+    - **`sampleformat`** *(string, required)*: Format des canaux des images en sortie. Must be one of: `["UINT8", "FLOAT32"]`.
+    - **`samplesperpixel`** *(integer, required)*: Nombre de canaux des images en sortie. Minimum: `1`. Maximum: `4`.
+  - **`nodata`** *(array)*: Nodata value to fill pyramid's slab, one integer per band. Length must be at least 1.
+    - **Items** *(integer)*
+- **`process`** *(object)*: Processing parameters. Cannot contain additional properties.
+  - **`directory`** *(string, required)*: Directory to write copies to process, FILE directory or S3/CEPH prefix.
+  - **`parallelization`** *(integer)*: Parallelization level, number of todo lists and agents working at the same time. Minimum: `1`. Default: `1`.
+
 ### MAKE-LAYER
 
 MAKE-LAYER est un outil générant un descripteur de couche compatible avec le serveur à partir des pyramides de données à utiliser
@@ -173,11 +249,11 @@ Aires prédéfinies pour une carte de chaleur :
 * `EPSG:3857`
   * `FXX` (France métropolitaine)
 
-Exemple (GETTILE_PARAMS -> HEATMAP) : 
+Exemple (GETTILE_PARAMS -> HEATMAP) :
 
 `tmsizer -i logs.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
-Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau: 
+Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau:
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
 

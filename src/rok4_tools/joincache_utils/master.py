@@ -1,7 +1,7 @@
 import itertools
 import os
 import tempfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict
 
 from rok4 import storage
 from rok4.enums import PyramidType, SlabType
@@ -30,7 +30,7 @@ def work(config: Dict) -> None:
     Raises:
         Exception: Cannot load the input or the output pyramid
         Exception: S3 cluster host have not to be provided into bucket names (output or inputs)
-        Exception: Sources pyramid have different features
+        Exception: Source pyramids have different features
         Exception: Cannot open stream to write todo lists
         Exception: Cannot copy todo lists
     """
@@ -40,40 +40,40 @@ def work(config: Dict) -> None:
     format_reference = None
     channels_reference = None
     for datasource in config["datasources"]:
-        sources = SourcePyramids(
+        source = SourcePyramids(
             datasource["bottom"],
             datasource["top"],
-            datasource["source"]["descriptors"],
+            datasource["source"],
         )
         # Vérification de l'unicité du TMS
         if not tms_reference:
-            tms_reference = sources.tms
-        elif tms_reference.name != sources.tms.name:
+            tms_reference = source.tms
+        elif tms_reference.name != source.tms.name:
             raise Exception(
-                f"Sources pyramids cannot have two different TMS : {tms_reference} and {sources.tms}"
+                f"Pyramids sources cannot have two different TMS : {tms_reference} and {source.tms}"
             )
 
         # Vérification de l'unicité du format
         if not format_reference:
-            format_reference = sources.format
-        elif format_reference != sources.format:
+            format_reference = source.format
+        elif format_reference != source.format:
             raise Exception(
-                f"Sources pyramids cannot have two different format : {format_reference} and {sources.format}"
+                f"Pyramids sources cannot have two different format : {format_reference} and {source.format}"
             )
 
         # Vérification de l'unicité du nombre de canaux
         if not channels_reference:
-            channels_reference = sources.channels
-        elif channels_reference != sources.channels:
+            channels_reference = source.channels
+        elif channels_reference != source.channels:
             raise Exception(
-                f"Sources pyramids cannot have two different numbers of channels : {channels_reference} and {sources.channels}"
+                f"Pyramids sources cannot have two different numbers of channels : {channels_reference} and {source.channels}"
             )
 
         # Vérification du type des pyramides
-        if sources.type != PyramidType.RASTER:
-            raise Exception(f"Some sources pyramids are not a raster")
+        if source.pyramids_type != PyramidType.RASTER:
+            raise Exception("A pyramids source is not a raster one")
 
-        datasources += [sources]
+        datasources.append(source)
 
     # Chargement de la pyramide à écrire
     storage_pyramid = {
@@ -118,9 +118,9 @@ def work(config: Dict) -> None:
     used_pyramids_roots = {}
     used_pyramids_count = 0
 
-    for sources in datasources:
-        from_pyramids = sources.pyramids
-        levels = from_pyramids[0].get_levels(sources.bottom, sources.top)
+    for source in datasources:
+        from_pyramids = source.pyramids
+        levels = from_pyramids[0].get_levels(source.bottom, source.top)
         for level in levels:
             # Vérification que plusieurs datasources ne définissent pas un même niveau
             if level.id not in level_finish:
@@ -128,7 +128,7 @@ def work(config: Dict) -> None:
                     to_pyramid.delete_level(level.id)
                 except:
                     pass
-                info = sources.info_level(level.id)
+                info = source.info_level(level.id)
                 to_pyramid.add_level(level.id, info[0], info[1], info[2])
                 level_finish += [level.id]
             else:
@@ -269,7 +269,7 @@ def work(config: Dict) -> None:
         temp_finisher_todo.close()
         storage.copy(
             f"file://{temp_finisher_todo.name}",
-            os.path.join(config["process"]["directory"], f"todo.finisher.list"),
+            os.path.join(config["process"]["directory"], "todo.finisher.list"),
         )
         storage.remove(f"file://{temp_finisher_todo.name}")
 

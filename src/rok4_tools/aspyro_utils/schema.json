@@ -1,0 +1,284 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "ASPYRO configuration",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "datasources",
+        "pyramid",
+        "process"
+    ],
+    "properties": {
+        "logger": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Logger configuration",
+            "properties": {
+                "layout": {
+                    "type": "string",
+                    "description": "Log format, according to logging python library",
+                    "default": "%(asctime)s %(levelname)s: %(message)s"
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Path to log file. Standard output is used if not provided"
+                },
+                "level": {
+                    "type": "string",
+                    "description": "Log level",
+                    "enum": [
+                        "DEBUG",
+                        "INFO",
+                        "WARNING",
+                        "ERROR",
+                        "CRITICAL",
+                        "NOTSET"
+                    ],
+                    "default": "WARNING"
+                }
+            }
+        },
+        "datasources": {
+            "type": "array",
+            "description": "Source WMS service",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "source",
+                    "bottom",
+                    "top"
+                ],
+                "properties": {
+                    "bottom": {
+                        "type": "string",
+                        "description": "Bottom level's usage for WMS service"
+                    },
+                    "top": {
+                        "type": "string",
+                        "description": "Top level's usage for WMS service"
+                    },
+                    "source": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "WMS services as data source",
+                        "required": [
+                            "type",
+                            "endpoint",
+                            "layers",
+                            "area"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "Source type",
+                                "enum": [
+                                    "WMS"
+                                ]
+                            },
+                            "endpoint": {
+                                "type": "string",
+                                "description": "URL of the WMS service"
+                            },
+                            "area": {
+                                "oneOf": [{
+                                    "type": "object",
+                                    "description": "Bounding box to harvest",
+                                    "required": ["srs", "bbox"],
+                                    "properties": {
+                                        "srs": {
+                                            "type": "string",
+                                            "description": "Bounding box's coordinate system"
+                                        },
+                                        "bbox": {
+                                            "type": "array",
+                                            "description": "Bounding box, in the provided coordinate system",
+                                            "items": {
+                                                "type": "number"
+                                            },
+                                            "minItems": 4,
+                                            "maxItems": 4
+                                        }
+                                    }
+                                }, {
+                                    "type": "object",
+                                    "description": "WKT geometry to harvest",
+                                    "required": ["srs", "geometry"],
+                                    "properties": {
+                                        "srs": {
+                                            "type": "string",
+                                            "description": "Geometry's coordinate system"
+                                        },
+                                        "geometry": {
+                                            "type": "string",
+                                            "description": "WKT geometry, in the provided coordinate system"
+                                        }
+                                    }
+                                }, {
+                                    "type": "object",
+                                    "description": "File or object containing the geometry to harvest",
+                                    "required": ["srs", "path"],
+                                    "properties": {
+                                        "srs": {
+                                            "type": "string",
+                                            "description": "Geometry's coordinate system"
+                                        },
+                                        "path": {
+                                            "type": "string",
+                                            "description": "File or object containing a WKT or a GeoJSON geometry, in the provided coordinate system"
+                                        }
+                                    }
+                                }]
+                            },
+                            "format": {
+                                "type": "string",
+                                "description": "Format of requested images",
+                                "default": "image/jpeg"
+                            },
+                            "layers": {
+                                "type": "array",
+                                "description": "Layers to request with GetMap",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1
+                            },
+                            "styles": {
+                                "type": "array",
+                                "description": "Styles for GetMap requests. If provided, have to be the same length than the layers list",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1
+                            },
+                            "max_size": {
+                                "type": "array",
+                                "description": "Maximum pixel width and height of image to download. Have to be a divisor of final slab size",
+                                "items": {
+                                    "type": "integer",
+                                    "minimum": 256
+                                },
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "default": [16, 16]
+                            },
+                            "extra_params": {
+                                "type": "object",
+                                "description": "Additionnal query parameters to add to each WMS requests"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "pyramid": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Output pyramid's storage informations",
+            "required": [
+                "name",
+                "storage",
+                "tms",
+                "pixel"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Output pyramid's name"
+                },
+                "tms": {
+                    "type": "string",
+                    "description": "Output pyramid's TMS identifier"
+                },
+                "slab_size": {
+                    "type": "array",
+                    "description": "Nombre de tuiles dans la dalle, dans le sens de la largeur puis de la hauteur",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "default": [16, 16]
+                },
+                "compression": {
+                    "type": "string",
+                    "description": "Output pyramid's compression",
+                    "default": "none",
+                    "enum": ["none", "jpg", "png", "jpg90", "zip", "lzw", "pkb"]
+                },
+                "storage": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["type", "root"],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Storage type",
+                            "enum": [
+                                "FILE", "S3", "CEPH"
+                            ]
+                        },
+                        "root": {
+                            "type": "string",
+                            "description": "Storage root : a directory for FILE storage, pool name for CEPH storage, bucket name for S3 storage"
+                        },
+                        "depth": {
+                            "type": "integer",
+                            "description": "Tree depth, only for FILE storage",
+                            "minimum": 1,
+                            "default": 2
+                        }
+                    }
+                },
+                "pixel": {
+                    "type": "object",
+                    "required": ["sampleformat", "samplesperpixel"],
+                    "properties": {
+                        "sampleformat": {
+                            "type": "string",
+                            "description": "Format des canaux des images en sortie",
+                            "enum": [
+                                "UINT8", "FLOAT32"
+                            ]
+                        },
+                        "samplesperpixel": {
+                            "type": "integer",
+                            "description": "Nombre de canaux des images en sortie",
+                            "minimum": 1,
+                            "maximum": 4
+                        }
+                    }
+                },
+                "nodata": {
+                    "type": "array",
+                    "description": "Nodata value to fill pyramid's slab, one integer per band",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "minItems": 1
+                }
+            }
+        },
+        "process": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Processing parameters",
+            "required": [
+                "directory"
+            ],
+            "properties": {
+                "directory": {
+                    "type": "string",
+                    "description": "Directory to write copies to process, FILE directory or S3/CEPH prefix"
+                },
+                "parallelization": {
+                    "type": "integer",
+                    "description": "Parallelization level, number of todo lists and agents working at the same time",
+                    "minimum": 1,
+                    "default": 1
+                }
+            }
+        }
+    }
+}

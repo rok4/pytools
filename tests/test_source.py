@@ -1,24 +1,23 @@
-import os
 from unittest import mock
 from unittest.mock import *
 
-import pytest
 from rok4.enums import PyramidType
 
+from rok4_tools.global_utils.enums import SourceType
 from rok4_tools.global_utils.source import *
 
 
 def test_init_source():
     try:
-        datasources = Source("16", "9")
-        assert datasources.bottom == "16"
-        assert datasources.top == "9"
+        datasource = Source("16", "9")
+        assert datasource.bottom == "16"
+        assert datasource.top == "9"
     except Exception as exc:
         assert False, f"Source creation raises an exception: {exc}"
 
 
 @mock.patch("rok4.layer.Pyramid.from_descriptor")
-def test_init_sourcepyramids(mocked_pyramid_class):
+def test_sourcepyramids_ok(mocked_pyramid_class):
     tms_instance = MagicMock()
     tms_instance.srs = "EPSG:3857"
     tms_instance.name = "TMS"
@@ -73,11 +72,14 @@ def test_init_sourcepyramids(mocked_pyramid_class):
     mocked_pyramid_class.side_effect = [pyramid_instance, pyramid_instance2]
 
     try:
-        datasources = SourcePyramids(
-            "10", "10", ["s3://pyramids/SCAN1000.json", "s3://pyramids/SCAN2000.json"]
+        datasource = SourcePyramids(
+            "10",
+            "10",
+            {"descriptors": ["s3://pyramids/SCAN1000.json", "s3://pyramids/SCAN2000.json"]},
         )
-        assert datasources.format == "TIFF_JPG_UINT8"
-        assert datasources.info_level("10") == (
+        assert datasource.type == SourceType.PYRAMIDS
+        assert datasource.format == "TIFF_JPG_UINT8"
+        assert datasource.info_level("10") == (
             16,
             16,
             {"min_row": 2, "max_row": 20, "min_col": 5, "max_col": 20},
@@ -86,4 +88,32 @@ def test_init_sourcepyramids(mocked_pyramid_class):
             [call("s3://pyramids/SCAN1000.json"), call("s3://pyramids/SCAN2000.json")]
         )
     except Exception as exc:
-        assert False, f"Source pyramids creation raises an exception: {exc}"
+        assert False, f"Pyramids source creation raises an exception: {exc}"
+
+
+def test_sourcewms_ok():
+    try:
+        datasource = SourceWMS(
+            "10",
+            "10",
+            {
+                "type": "WMS",
+                "endpoint": "https://services.geo/wms",
+                "layers": ["layer1", "layer2"],
+                "extra_params": {"titi": "toto"},
+            },
+        )
+    except Exception as exc:
+        assert False, f"WMS source creation raises an exception: {exc}"
+
+    assert datasource.type == SourceType.WMS
+    assert datasource.format == "image/jpeg"
+    assert datasource.endpoint == "https://services.geo/wms"
+    assert (
+        datasource.get_getmap_request("EPSG:2154", (200, 280), (0, 10, 100, 150))
+        == "https://services.geo/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=layer1,layer2&STYLES=,&SRS=EPSG:2154&BBOX=0,10,100,150&WIDTH=200&HEIGHT=280&FORMAT=image/jpeg&titi=toto"
+    )
+    assert (
+        datasource.get_getcapabilities_request()
+        == "https://services.geo/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities&titi=toto"
+    )

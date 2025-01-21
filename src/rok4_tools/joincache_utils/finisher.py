@@ -1,7 +1,6 @@
-import logging
 import os
 import tempfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict
 
 from rok4 import storage
 from rok4.pyramid import Pyramid
@@ -29,7 +28,7 @@ def work(config: Dict) -> None:
         sources = SourcePyramids(
             config["datasources"][i]["bottom"],
             config["datasources"][i]["top"],
-            config["datasources"][i]["source"]["descriptors"],
+            config["datasources"][i]["source"],
         )
         datasources.append(sources)
 
@@ -76,7 +75,7 @@ def work(config: Dict) -> None:
 
             todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
             storage.copy(
-                os.path.join(config["process"]["directory"], f"todo.finisher.list"),
+                os.path.join(config["process"]["directory"], "todo.finisher.list"),
                 f"file://{todo_list_obj.name}",
             )
 
@@ -92,7 +91,7 @@ def work(config: Dict) -> None:
 
             todo_list_obj.close()
             storage.remove(f"file://{todo_list_obj.name}")
-            storage.remove(os.path.join(config["process"]["directory"], f"todo.finisher.list"))
+            storage.remove(os.path.join(config["process"]["directory"], "todo.finisher.list"))
 
             list_file_obj.write("#\n")
 

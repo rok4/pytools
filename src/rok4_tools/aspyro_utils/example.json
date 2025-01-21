@@ -1,0 +1,40 @@
+{
+	"logger": {
+		"level": "INFO"
+	},
+    "datasources": [
+        {
+            "top": "0",
+            "bottom": "10",
+            "source": {
+                "type": "WMS",
+				"endpoint": "https://raster.services.fr/wms",
+				"format": "image/jpeg",
+                "layers": [
+                    "layer1",
+                    "layer2"
+                ],
+                "max_size": [1024, 1024],
+                "styles": [
+                    "normal",
+                    "normal"
+                ],
+				"extra_params": {
+					"key1": "value1",
+					"key2": "value2"
+				}
+            }
+        }
+    ],
+    "pyramid": {
+		"name": "harvested/states",
+		"storage": {
+			"type": "S3",
+			"root": "pyramids"
+		}
+    },
+    "process": {
+        "directory": "s3://temporary/aspyro",
+        "parallelization": 2
+    }
+}

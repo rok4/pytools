@@ -34,7 +34,7 @@ dependencies = [
   "jsonschema",
   "tqdm",
   "rasterio",
-  "rok4 >= 2.1.5, < 3.0.0"
+  "rok4 >= 2.3.0, < 3.0.0"
 ]
 
 [project.optional-dependencies]
@@ -66,10 +66,12 @@ make-layer = "rok4_tools.make_layer:main"
 joincache = "rok4_tools.joincache:main"
 pyrolyse = "rok4_tools.pyrolyse:main"
 tmsizer = "rok4_tools.tmsizer:main"
+aspyro = "rok4_tools.aspyro:main"
 
 [tool.setuptools.package-data]
 "rok4_tools.joincache_utils" = ["*.json"]
 "rok4_tools.pyr2pyr_utils" = ["*.json"]
+"rok4_tools.aspyro_utils" = ["*.json"]
 
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]

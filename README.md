@@ -130,9 +130,9 @@ Utilisation : `make-layer [-h] [--version] --pyramids storage://path/to/pyr.json
 
 PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
 
-Concernant les tailles et les temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
+Concernant les tailles et les temps d'accès, il est possible de demander le calcul des quantiles plutôt que de garder toutes les valeurs.
 
-Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
+Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--centiles] [--ratio N]`
 
 * `-h, --help` : affiche l'aide et quitte
 * `--version` : affiche la version et quitte
@@ -141,6 +141,7 @@ Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [-
 * `--tiles` : avoir l'analyse de la taille des tuiles
 * `--progress` : affiche une barre de progression, seulement avec l'option `--output`
 * `--deciles` : avoir les déciles plutôt que toutes les valeurs de taille et de temps d'accès
+* `--centiles` : avoir les centiles plutôt que toutes les valeurs de taille et de temps d'accès
 * `--ratio N` : ratio à appliquer sur la mesure de taille (un parmi <ratio>, 100 par défaut). Toutes les dalles sont comptées
 
 ### TMSIZER
@@ -173,11 +174,11 @@ Aires prédéfinies pour une carte de chaleur :
 * `EPSG:3857`
   * `FXX` (France métropolitaine)
 
-Exemple (GETTILE_PARAMS -> HEATMAP) : 
+Exemple (GETTILE_PARAMS -> HEATMAP) :
 
 `tmsizer -i logs.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
-Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau: 
+Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau:
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
 

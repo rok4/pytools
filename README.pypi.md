@@ -125,11 +125,11 @@ MAKE-LAYER generate a layer's descriptor, [ROK4 server](https://github.com/rok4/
 
 PYROLYSE analyse a pyramid, to get slab/tile size and count, for the entire pyramide and per level. Slab and tile sizes are not all processed : a ratio limits the number of measures. This ratio is assumed for a level (to avoid to have mainly data for the best level). If tile statistics is enabled, access time are compiled.
 
-For size and access time, it's possible to get deciles and not all values.
+For size and access time, it's possible to get quantiles and not all values.
 
 #### Usage
 
-`pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
+`pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--centiles] [--ratio N]`
 
 * `-h, --help` : show this help message and exit
 * `--version` : show program's version number and exit
@@ -138,6 +138,7 @@ For size and access time, it's possible to get deciles and not all values.
 * `--tiles` : get size analysis for tiles
 * `--progress` : Print a progress bar (only with --output option)
 * `--deciles` : get deciles for sizes and read times rather than values
+* `--centiles` : get centiles for sizes and read times rather than values
 * `--ratio N` : ratio of measured slabs and tiles (<ratio> choose one). All slabs are counted
 
 ### TMSIZER
@@ -172,10 +173,10 @@ Available areas for a heatmap :
 * `EPSG:3857`
   * `FXX` (European France)
 
-Example (GETTILE_PARAMS -> HEATMAP) : 
+Example (GETTILE_PARAMS -> HEATMAP) :
 
 `tmsizer -i logs.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
-Example (GETTILE_PARAMS -> HEATMAP) with predefined area and pixel-level superposition: 
+Example (GETTILE_PARAMS -> HEATMAP) with predefined area and pixel-level superposition:
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`

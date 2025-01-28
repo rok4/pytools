@@ -41,7 +41,7 @@ def parse() -> None:
 
     parser.add_argument(
         "--role",
-        choices=["master", "agent", "finisher", "example", "check"],
+        choices=["master", "agent", "finisher", "example", "check", "test"],
         action="store",
         dest="role",
         help="Script's role",
@@ -172,13 +172,15 @@ def main() -> None:
     if args.role == "check":
         # On voulait juste valider le fichier de configuration, c'est chose faite
         # Si on est là c'est que tout est bon
-        print("Valid configuration !")
+        logging.info("Valid configuration (syntax) !")
         sys.exit(0)
 
     # Work
     try:
         if args.role == "master":
-            master_work(config)
+            master_work(config, False)
+        elif args.role == "test":
+            master_work(config, True)
         elif args.role == "agent":
             agent_work(config, args.split)
         elif args.role == "finisher":

@@ -11,7 +11,7 @@ from typing import Dict, Iterator, List, TextIO, Tuple
 
 from rok4.enums import PyramidType
 from rok4.pyramid import Pyramid
-from rok4.storage import copy, get_data_str
+from rok4.storage import copy
 from rok4.tile_matrix_set import TileMatrixSet
 from rok4.utils import (
     bbox_to_geometry,
@@ -280,8 +280,7 @@ class SourceWMS(Source):
             infos = get_raster_infos(f"file:///tmp/test_getmap.{self.__extension}")
             return infos
         except Exception as e:
-            err = get_data_str(f"file:///tmp/test_getmap.{self.__extension}")
-            raise Exception(f"Cannot test a getmap to WMS source: {e}\n{err}")
+            raise Exception(f"Cannot test a getmap to WMS source: {e}")
 
     def compute_slabs_indices(
         self, tms: TileMatrixSet, slab_size: Tuple[int, int]
@@ -439,6 +438,10 @@ class SourceWMS(Source):
     @property
     def endpoint(self) -> str:
         return self.__endpoint
+
+    @property
+    def bottom_slab_count(self) -> str:
+        return len(self.__slabs[self.bottom])
 
     def slab_generator(self, level_id: str) -> Iterator[Dict]:
         """Get slabs for provided levels

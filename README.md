@@ -112,22 +112,24 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
 
 ### ASPYRO
 
-L'outil ASPYRO génèrent une pyramide raster à de services WMS. Seuls les TMS de type quad tree sont gérés. Pour chaque source WMS, le niveau le plus bas est moissoné (requêtes WMS getmap) et les niveaux supérieurs sont calculés par sous échantillonnage 4 par 4 (command merge4tiff).
+L'outil ASPYRO génère une pyramide raster à de services WMS. Seuls les TMS de type quad tree sont gérés. Pour chaque source WMS, le niveau le plus bas est moissoné (requêtes WMS getmap) et les niveaux supérieurs sont calculés par sous échantillonnage 4 par 4 (command merge4tiff).
 
 Un exemple de configuration est affichable avec la commande `joincache --role example` et l'appel `joincache --role check --conf conf.json` permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : `s3://bucket/configuration.json`)
+
+Le rôle `test` permet de valider le contenu de la configuration et d'afficher le nombre de dalles qui seront moissonnées.
 
 #### Fonctionnement
 
 Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 modes suivants, dans cet ordre (tous les modes utilisent le fichier de configuration) :
 
 1. Rôle `master`
-    * Actions : contrôle du fichier de configuration et des sources WMS, identification du travail, génération des N TODO lists pour les agents et de celle du finisher, déposé dans un dossier précisé dans la configuration (peut être un stockage objet).
+    * Actions : contrôle du fichier de configuration et des sources WMS, identification du travail, génération des N TODO lists pour les agents et de celle du finisher, déposé dans un dossier précisé dans la configuration (peut être un stockage objet) et écriture du descripteur de la pyramide en sortie.
     * Appel : `aspyro --role master --conf conf.json`
 2. Rôle `agent` :
     * Actions : lecture de sa TODO list depuis le dossier de traitement et traitement de chaque ligne
     * Appel (un appel par TODO list) : `aspyro --role agent --conf conf.json --split X`
 3. Rôle `finisher` :
-    * Actions : lecture de sa TODO list depuis le dossier de traitement et traitement de chaque ligne, puis lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
+    * Actions : lecture de sa TODO list depuis le dossier de traitement et traitement de chaque ligne, puis lecture des TODO lists pour écrire le fichier liste final.
     * Appel : `aspyro --role finisher --conf conf.json`
 
 ![Enchaînement ASPYRO](./docs/images/aspyro.png)

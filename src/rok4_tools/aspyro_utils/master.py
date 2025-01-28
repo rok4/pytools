@@ -1,4 +1,5 @@
 import itertools
+import logging
 import os
 import tempfile
 from typing import Dict
@@ -19,13 +20,14 @@ from rok4_tools.global_utils.source import SourceWMS
 """
 
 
-def work(config: Dict) -> None:
+def work(config: Dict, dry: bool = False) -> None:
     """Master steps : prepare and split getmap requests and pyramid copies to do
 
     Load the WMS sources and the output pyramid and write the todo lists, splitting the work to do and write the output pyramid descriptor
 
     Args:
         config (Dict): ASPYRO configuration
+        dry (bool, optional): Only test configuration content and print the harvested slabs count. Defaults to False.
 
     Raises:
         Exception: Cannot load the output pyramid
@@ -78,20 +80,23 @@ def work(config: Dict) -> None:
     except Exception as e:
         raise Exception(f"Cannot create the output pyramid descriptor from the parameters: {e}")
 
-    # Ouverture des flux vers les listes de recopies à faire
-    split_file_objects = []
-    finisher_file_object = None
-    try:
-        for i in range(0, config["process"]["parallelization"]):
-            tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
-            split_file_objects.append(tmp)
+    if dry:
+        logging.info(f"Raster data with {samplesperpixel} {sampleformat} band(s)")
+    else:
+        # Ouverture des flux vers les listes de recopies à faire
+        split_file_objects = []
+        finisher_file_object = None
+        try:
+            for i in range(0, config["process"]["parallelization"]):
+                tmp = tempfile.NamedTemporaryFile(mode="w", delete=False)
+                split_file_objects.append(tmp)
 
-        finisher_file_object = tempfile.NamedTemporaryFile(mode="w", delete=False)
+            finisher_file_object = tempfile.NamedTemporaryFile(mode="w", delete=False)
 
-    except Exception as e:
-        raise Exception(f"Cannot open stream to write todo lists: {e}")
+        except Exception as e:
+            raise Exception(f"Cannot open stream to write todo lists: {e}")
 
-    round_robin = itertools.cycle(split_file_objects)
+        round_robin = itertools.cycle(split_file_objects)
 
     for source in datasources:
         levels = output_pyramid.tms.get_levels(source.bottom, source.top)
@@ -117,6 +122,12 @@ def work(config: Dict) -> None:
         # et à partir duquel la todo liste du finisher va travailler
         cut_level = source.get_cut_level(output_pyramid.tms, config["process"]["parallelization"])
 
+        if dry:
+            logging.info(f"WMS source from {source.bottom} to {source.top}")
+            logging.info(f"    cut level {cut_level}")
+            logging.info(f"    {source.bottom_slab_count} slab(s) to harvest")
+            continue
+
         # On précise les niveaux (bas, coupure et haut) dans tous les scripts
         # Ainsi que les informations globales de moissonnage
         for split_file_object in split_file_objects:
@@ -138,28 +149,29 @@ def work(config: Dict) -> None:
         for slab in source.slab_generator(source.top):
             source.compute_slab(slab, finisher_file_object, cut_level)
 
-    # Copie des listes de recopies à l'emplacement partagé (peut être du stockage objet)
-    try:
-        for i in range(0, config["process"]["parallelization"]):
-            tmp = split_file_objects[i]
-            tmp.close()
+    if not dry:
+        # Copie des listes de recopies à l'emplacement partagé (peut être du stockage objet)
+        try:
+            for i in range(0, config["process"]["parallelization"]):
+                tmp = split_file_objects[i]
+                tmp.close()
+                storage.copy(
+                    f"file://{tmp.name}",
+                    os.path.join(config["process"]["directory"], f"todo.{i+1}.list"),
+                )
+                storage.remove(f"file://{tmp.name}")
+
+            finisher_file_object.close()
             storage.copy(
-                f"file://{tmp.name}",
-                os.path.join(config["process"]["directory"], f"todo.{i+1}.list"),
+                f"file://{finisher_file_object.name}",
+                os.path.join(config["process"]["directory"], "todo.finisher.list"),
             )
-            storage.remove(f"file://{tmp.name}")
+            storage.remove(f"file://{finisher_file_object.name}")
 
-        finisher_file_object.close()
-        storage.copy(
-            f"file://{finisher_file_object.name}",
-            os.path.join(config["process"]["directory"], "todo.finisher.list"),
-        )
-        storage.remove(f"file://{finisher_file_object.name}")
+        except Exception as e:
+            raise Exception(f"Cannot copy todo lists to final location and clean: {e}")
 
-    except Exception as e:
-        raise Exception(f"Cannot copy todo lists to final location and clean: {e}")
-
-    try:
-        output_pyramid.write_descriptor()
-    except Exception as e:
-        raise Exception(f"Cannot write output pyramid's descriptor to final location: {e}")
+        try:
+            output_pyramid.write_descriptor()
+        except Exception as e:
+            raise Exception(f"Cannot write output pyramid's descriptor to final location: {e}")

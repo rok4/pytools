@@ -41,6 +41,7 @@
         "datasources": {
             "type": "array",
             "description": "Source WMS service",
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "additionalProperties": false,
@@ -178,8 +179,7 @@
             "required": [
                 "name",
                 "storage",
-                "tms",
-                "pixel"
+                "tms"
             ],
             "properties": {
                 "name": {
@@ -228,25 +228,6 @@
                             "description": "Tree depth, only for FILE storage",
                             "minimum": 1,
                             "default": 2
-                        }
-                    }
-                },
-                "pixel": {
-                    "type": "object",
-                    "required": ["sampleformat", "samplesperpixel"],
-                    "properties": {
-                        "sampleformat": {
-                            "type": "string",
-                            "description": "Format des canaux des images en sortie",
-                            "enum": [
-                                "UINT8", "FLOAT32"
-                            ]
-                        },
-                        "samplesperpixel": {
-                            "type": "integer",
-                            "description": "Nombre de canaux des images en sortie",
-                            "minimum": 1,
-                            "maximum": 4
                         }
                     }
                 },

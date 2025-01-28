@@ -5,6 +5,7 @@ from typing import Dict
 
 from rok4 import storage
 from rok4.pyramid import Pyramid
+from rok4.tile_matrix_set import TileMatrixSet
 
 from rok4_tools.global_utils.source import SourceWMS
 
@@ -33,19 +34,20 @@ def work(config: Dict) -> None:
         MissingEnvironmentError: Missing object storage informations
     """
 
-    # Chargement de la pyramide à écrire
+    # Chargement du TMS cible
     try:
-        output_pyramid = Pyramid.from_parameters(config["pyramid"])
+        tms = TileMatrixSet(config["pyramid"]["tms"])
     except Exception as e:
-        raise Exception(f"Cannot create the output pyramid descriptor from the parameters: {e}")
+        raise Exception(f"Cannot load the output pyramid tile matrix set: {e}")
 
     datasources = []
-    (width_getmap_count, height_getmap_count, url) = (0, 0, "")
     level_ids = []
+    samplesperpixel = None
+    sampleformat = None
     for datasource in config["datasources"]:
         # On contrôle la cohérence des niveaux limites avec le TMS de la pyramide à écrire
         # et on charge les sources en tant qu'objet de la classe SourceWMS
-        levels = output_pyramid.tms.get_levels(datasource["bottom"], datasource["top"])
+        levels = tms.get_levels(datasource["bottom"], datasource["top"])
 
         for l in levels:
             if l.id in level_ids:
@@ -54,7 +56,27 @@ def work(config: Dict) -> None:
 
         source = SourceWMS(datasource["bottom"], datasource["top"], datasource["source"])
 
+        infos = source.test(tms)
+
+        if sampleformat is None:
+            sampleformat = infos["format"].name
+            samplesperpixel = infos["bands"]
+        elif sampleformat != infos["format"].name or samplesperpixel != infos["bands"]:
+            raise Exception(
+                "All WMS source have to give image with same bands count and sample format"
+            )
+
         datasources.append(source)
+
+    # Chargement de la pyramide à écrire
+
+    # On enrichit la configuration avec le format d'image issu du moissonnage
+    config["pyramid"]["pixel"] = {"samplesperpixel": samplesperpixel, "sampleformat": sampleformat}
+
+    try:
+        output_pyramid = Pyramid.from_parameters(config["pyramid"])
+    except Exception as e:
+        raise Exception(f"Cannot create the output pyramid descriptor from the parameters: {e}")
 
     # Ouverture des flux vers les listes de recopies à faire
     split_file_objects = []

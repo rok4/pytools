@@ -176,23 +176,17 @@ def main() -> None:
         sys.exit(0)
 
     # Work
-    if args.role == "master":
-        master_work(config)
-    elif args.role == "agent":
-        agent_work(config, args.split)
-    elif args.role == "finisher":
-        finisher_work(config)
-    # try:
-    #     if args.role == "master":
-    #         master_work(config)
-    #     elif args.role == "agent":
-    #         agent_work(config, args.split)
-    #     elif args.role == "finisher":
-    #         finisher_work(config)
+    try:
+        if args.role == "master":
+            master_work(config)
+        elif args.role == "agent":
+            agent_work(config, args.split)
+        elif args.role == "finisher":
+            finisher_work(config)
 
-    # except Exception as e:
-    #     logging.error(e)
-    #     sys.exit(1)
+    except Exception as e:
+        logging.error(e)
+        sys.exit(1)
 
     sys.exit(0)
 

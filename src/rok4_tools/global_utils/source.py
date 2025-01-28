@@ -11,10 +11,12 @@ from typing import Dict, Iterator, List, TextIO, Tuple
 
 from rok4.enums import PyramidType
 from rok4.pyramid import Pyramid
+from rok4.storage import copy, get_data_str
 from rok4.tile_matrix_set import TileMatrixSet
 from rok4.utils import (
     bbox_to_geometry,
     get_geometry_parts,
+    get_raster_infos,
     intersects,
     path_to_geometry,
     reproject_geometry,
@@ -256,6 +258,30 @@ class SourceWMS(Source):
 
         except RuntimeError as e:
             raise Exception(f"OGR cannot load the geometry used to define area : {e}")
+
+    def test(self, tms: TileMatrixSet) -> Dict:
+        """Download a tile of the bottom level, to check if layer(s) are available and format is valid
+
+        Args:
+            tms (TileMatrixSet): Target tile matrix set
+
+        Raises:
+            RuntimeError: raised by OGR/GDAL if anything goes wrong
+            Exception: Issue downloading the tile
+
+        Returns:
+            Dict: Informations about downloaded image : bbox (Tuple[float]), bands (int), format (ColorFormat) and dimensions (Tuple[int])
+        """
+        bottom_level = tms.get_level(self.bottom)
+        url = f"{self.get_static_getmap_request(tms.srs, (bottom_level.tile_width, bottom_level.tile_height))}&BBOX={','.join(map(str, bottom_level.tile_to_bbox(0,0)))}"
+
+        try:
+            copy(url, f"file:///tmp/test_getmap.{self.__extension}")
+            infos = get_raster_infos(f"file:///tmp/test_getmap.{self.__extension}")
+            return infos
+        except Exception as e:
+            err = get_data_str(f"file:///tmp/test_getmap.{self.__extension}")
+            raise Exception(f"Cannot test a getmap to WMS source: {e}\n{err}")
 
     def compute_slabs_indices(
         self, tms: TileMatrixSet, slab_size: Tuple[int, int]

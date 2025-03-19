@@ -12,6 +12,8 @@ Installations système requises :
 
 Depuis [PyPI](https://pypi.org/project/rok4-tools/) : `pip install rok4-tools`
 
+Taper l'url suivante : `https://github.com/rok4/pytools/releases/` puis cliquez sur : `rok4_tools-x.y.z-py3-none-any.whl` puis télécharger en dehors du dépôt `pytools`.
+
 Depuis [GitHub](https://github.com/rok4/pytools/releases/) : `pip install https://github.com/rok4/pytools/releases/download/x.y.z/rok4_tools-x.y.z-py3-none-any.whl`
 
 L'environnement d'exécution doit avoir accès aux librairies système. Dans le cas d'une utilisation au sein d'un environnement python, précisez bien à la création `python3 -m venv --system-site-packages .venv`.
@@ -20,6 +22,8 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 ## Utiliser les outils
 
 ### PYR2PYR
+
+Installer la commande `jsonschema2md` en tapant `pip install jsonschema2md`
 
 PYR2PYR est un outil de copie d'une pyramide d'un stockage à un autre. Il est possible de filtrer les dalles transférée en précisant une taille limite sous laquelle les données ne sont pas recopiées. La copie des dalles est parallélisable. Si des signatures MD5 sont présente dans le fichier liste, elles sont contrôlées après recopie.
 

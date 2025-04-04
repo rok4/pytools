@@ -1,3 +1,8 @@
+## PYR2PYR : un exemple de ligne de commande à lancer :
+```sh
+pyr2pyr --role check --conf Téléchargements/PM.json | pyr2pyr --role master --conf Téléchargements/PM.json |  pyr2pyr --role agent --conf Téléchargements/PM.json --split 3 | pyr2pyr --role finisher --conf Téléchargements/PM.json
+```
+
 ## JOINCACHE : Exemple de fichier de configuration :
 
 *   Exemple de fichier de configuration valide `exemple_valid_json.json`:
@@ -48,8 +53,9 @@ S84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal", "normal"], 
 
 ## PYROLYSE : un exemple de ligne de commande à lancer :
 ```sh
-pyr2pyr --role check --conf Téléchargements/PM.json | pyr2pyr --role master --conf Téléchargements/PM.json |  pyr2pyr --role agent --conf Téléchargements/PM.json --split 3 | pyr2pyr --role finisher --conf Téléchargements/PM.json
+
 ```
+
 
 ## TMSIZER : un exemple de lignes de commande avec différents filtres :
 ```sh

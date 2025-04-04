@@ -53,7 +53,7 @@ S84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal", "normal"], 
 
 ## PYROLYSE : un exemple de ligne de commande à lancer :
 ```sh
-
+pyrolyse --pyramid s3://pyramids/ALTI.json --output resultats.json --tiles --progress --deciles --ratio 1
 ```
 
 

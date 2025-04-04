@@ -188,6 +188,10 @@ Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspond
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
 
+Le nombre de requêtes pris en compte pour générer l'image, en fonction des filtres et de la zone couverte par la carte de chaleur :
+
+![ROK4 PYTOOLS FICHIER GETTILES](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#tmsizer--un-exemple-de-lignes-de-commande-avec-diff%C3%A9rents-filtres-)
+
 ## Compiler la suite d'outils
 
 ```sh

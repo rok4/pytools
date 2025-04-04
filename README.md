@@ -87,6 +87,8 @@ Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 mo
     * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
     * Appel : `joincache --role finisher --conf conf.json`
 
+
+
 #### Configuration
 
 Possibilités de contenu du fichier JSON (généré à partir du schéma JSON avec `jsonschema2md src/rok4_tools/joincache_utils/schema.json /dev/stdout`)

@@ -80,7 +80,7 @@ HeatmapProcessor : 81 hits on image with dimensions (600, 400) and bbox (65000.0
 
 Dans l'exemple ci-après, on a 110 requêtes pris en compte pour générer l'image, en fonction des filtres choisis et de la zone couverte par la carte de chaleur:
 ```sh
-tmsizer -i requests.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif
+tmsizer -i requests.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif
 HeatmapProcessor : 110 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))
 ```
 

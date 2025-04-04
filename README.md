@@ -38,7 +38,7 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
     * Appel : `pyr2pyr --role master --conf conf.json`
 2. Rôle `agent` :
     * Actions : lecture de la TODO list depuis le dossier de traitement et recopie des dalles
-    * Appel (un appel par TODO list) : `pyr2pyr --role agent --conf conf.json --split X`
+    * Appel (un appel par TODO list) : `pyr2pyr --role agent --conf conf.json --split X` où X : est un entier naturel.
 3. Rôle `finisher` :
     * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
     * Appel : `pyr2pyr --role finisher --conf conf.json`

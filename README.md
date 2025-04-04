@@ -66,6 +66,10 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
     - **`parallelization`** *(integer)*: Parallelization level, number of todo lists and agents working at the same time. Minimum: `1`. Default: `1`.
     - **`follow_links`** *(boolean)*: Do we follow links (data slabs in others pyramids than the 'from' one). Default: `False`.
     - **`slab_limit`** *(integer)*: Minimum slab size (if under, we do not copy). Minimum: `0`. Default: `0`.
+  
+* Exemple d'utilisation de pyr2pyr :
+  
+![ROK4 PYR2PYR](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#pyr2pyr--un-exemple-de-ligne-de-commande-%C3%A0-lancer-)
 
 ### JOINCACHE
 
@@ -132,6 +136,8 @@ Utilisation : `make-layer [-h] [--version] --pyramids storage://path/to/pyr.json
 * `--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}` : type d'interpolation pour le réechantillonnage
 * `--directory s3://layers_bucket` : dossier, fichier ou objet, dans lequel écrire le descripteur de pyramide. Affiche dans la sortie standard si non fourni
 
+![ROK4 MAKELAYER](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#makelayer--un-exemple-de-ligne-de-commande-%C3%A0-lancer-)
+
 ### PYROLYSE
 
 PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
@@ -149,6 +155,8 @@ Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [-
 * `--deciles` : avoir les déciles plutôt que toutes les valeurs de taille et de temps d'accès
 * `--centiles` : avoir les centiles plutôt que toutes les valeurs de taille et de temps d'accès
 * `--ratio N` : ratio à appliquer sur la mesure de taille (un parmi <ratio>, 100 par défaut). Toutes les dalles sont comptées
+
+![ROK4 PYROLYSE](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#pyrolyse--un-exemple-de-ligne-de-commande-%C3%A0-lancer-)
 
 ### TMSIZER
 

@@ -56,6 +56,19 @@ S84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal", "normal"], 
 pyrolyse --pyramid s3://pyramids/ALTI.json --output resultats.json --tiles --progress --deciles --ratio 1
 ```
 
+Le résultat donne le fichier de résultats `resultats.json` suivant : 
+```json
+{"global": {"slab_count": 17, "slab_sizes": [77819.0, 77844.6, 77860.6, 77975.8, 78644.6, 82379.0, 119482.99999999999, 335572.59999999986, 825531.0000000003, 2665611.0, 3715851.0], "link_count": 0, "tile_
+sizes": [283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 287.0, 310.0]}, "levels": {"13": {"slab_count": 4, "slab_sizes": [77819.0, 199047.80000000002, 320276.60000000003, 441505.3999999999
+7, 863780.6000000003, 1436579.0, 2009377.3999999997, 2523703.7999999993, 2921086.2, 3318468.6, 3715851.0], "link_count": 0, "tile_sizes": [283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 283.0, 28
+3.0, 283.0]}, "12": {"slab_count": 1, "slab_sizes": [3077163], "link_count": 0, "tile_sizes": [283]}, "11": {"slab_count": 1, "slab_sizes": [911435], "link_count": 0, "tile_sizes": [283]}, "10": {"slab_co
+unt": 1, "slab_sizes": [298987], "link_count": 0, "tile_sizes": [283]}, "9": {"slab_count": 1, "slab_sizes": [136827], "link_count": 0, "tile_sizes": [283]}, "8": {"slab_count": 1, "slab_sizes": [93467], 
+"link_count": 0, "tile_sizes": [283]}, "7": {"slab_count": 1, "slab_sizes": [82379], "link_count": 0, "tile_sizes": [283]}, "6": {"slab_count": 1, "slab_sizes": [79211], "link_count": 0, "tile_sizes": [28
+3]}, "5": {"slab_count": 1, "slab_sizes": [78267], "link_count": 0, "tile_sizes": [283]}, "4": {"slab_count": 1, "slab_sizes": [77995], "link_count": 0, "tile_sizes": [283]}, "3": {"slab_count": 1, "slab_
+sizes": [77899], "link_count": 0, "tile_sizes": [283]}, "2": {"slab_count": 1, "slab_sizes": [77851], "link_count": 0, "tile_sizes": [283]}, "1": {"slab_count": 1, "slab_sizes": [77851], "link_count": 0, 
+"tile_sizes": [310]}, "0": {"slab_count": 1, "slab_sizes": [77835], "link_count": 0, "tile_sizes": [293]}}, "perfs": [0.002020657000684878, 0.0021233711999229855, 0.0021787890007544776, 0.0023693994000495
+875, 0.0024838273999193915, 0.0027725769996322924, 0.002991372598626185, 0.0032549347990425298, 0.004386014799820259, 0.005820798000422655, 0.006239024000024074]}
+```
 
 ## TMSIZER : un exemple de lignes de commande avec différents filtres :
 

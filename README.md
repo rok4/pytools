@@ -200,7 +200,7 @@ Le nombre de requêtes pris en compte pour générer l'image, en fonction des fi
 
 ```HeatmapProcessor : 81 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))```
 
-![ROK4 PYTOOLS FICHIER GETTILES](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#tmsizer--un-exemple-de-lignes-de-commande-avec-diff%C3%A9rents-filtres-)
+![ROK4 PYTOOLS TMSIZER FILE GETTILES](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#tmsizer--un-exemple-de-lignes-de-commande-avec-diff%C3%A9rents-filtres-)
 
 ## Compiler la suite d'outils
 

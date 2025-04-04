@@ -87,7 +87,7 @@ Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 mo
     * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
     * Appel : `joincache --role finisher --conf conf.json`
 
-
+![ROK4 PYTOOLS FICHIER DE CONFIGURATION](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#joincache--exemple-de-fichier-de-configuration-)
 
 #### Configuration
 

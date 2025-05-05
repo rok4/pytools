@@ -28,12 +28,6 @@ def work(config: Dict, split: int) -> None:
         MissingEnvironmentError: Missing object storage informations
     """
 
-    # Chargement de la pyramide à écrire
-    try:
-        output_pyramid = Pyramid.from_parameters(config["pyramid"])
-    except Exception as e:
-        raise Exception(f"Cannot create the output pyramid descriptor from the parameters: {e}")
-
     # On récupère la todo list sous forme de fichier temporaire
     try:
         todo_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
@@ -72,6 +66,7 @@ def work(config: Dict, split: int) -> None:
         url = None
         download_extension = None
         getmap_extension = None
+        output_pyramid = None
 
         for line in todo_list_obj:
             line = line.rstrip()
@@ -88,6 +83,8 @@ def work(config: Dict, split: int) -> None:
                 height_getmap_count = int(parts.pop(0))
                 url = parts.pop(0)
                 download_extension = parts.pop(0)
+                samplesperpixel = parts.pop(0)
+                sampleformat = parts.pop(0)
 
                 # L'extension finale d'une dalle moissonnée est celle de téléchargement si on la télécharge en une fois
                 # tif sinon
@@ -95,6 +92,19 @@ def work(config: Dict, split: int) -> None:
                     getmap_extension = "tif"
                 else:
                     getmap_extension = download_extension
+
+                config["pyramid"]["pixel"] = {
+                    "samplesperpixel": int(samplesperpixel),
+                    "sampleformat": sampleformat,
+                }
+
+                # Chargement de la pyramide à écrire
+                try:
+                    output_pyramid = Pyramid.from_parameters(config["pyramid"])
+                except Exception as e:
+                    raise Exception(
+                        f"Cannot create the output pyramid descriptor from the parameters: {e}"
+                    )
 
             elif cmd == "getmap":
                 level = parts.pop(0)

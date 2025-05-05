@@ -1,6 +1,7 @@
 import itertools
 import logging
 import os
+import pprint
 import tempfile
 from typing import Dict
 
@@ -13,7 +14,7 @@ from rok4_tools.global_utils.source import SourceWMS
 """Todo list instructions
 
 * levels <bottom level ID> <cut level ID> <top level ID> - Define the levels for source to compute
-* getmap_infos <widthwise getmap count> <heightwise getmap count> <getmap static part> <extension> - Define global informations for getmap requests
+* getmap_infos <widthwise getmap count> <heightwise getmap count> <getmap static part> <extension> <bands count> <band format> - Define global informations for getmap requests
 * getmap <slab level> <slab column> <slab row> <bbox>[ <bbox>] - Download a slab through WMS GetMap(s), never in the finisher todo list
 * m4t <slab level> <slab column> <slab row> <source slab(s) command> <source slab(s) level> <source slab col> <source slab row>[ <source slab col> <source slab row>] - Compute a slab with 4 (or less) below slabs
 
@@ -77,6 +78,12 @@ def work(config: Dict, dry: bool = False) -> None:
 
     try:
         output_pyramid = Pyramid.from_parameters(config["pyramid"])
+        if output_pyramid.exists:
+            # La pyramide de sortie existe déjà, on va donc la charger depuis son descripteur
+            descriptor_path = output_pyramid.descriptor
+            output_pyramid = Pyramid.from_descriptor(descriptor_path)
+            pprint.pp(output_pyramid.serializable)
+            return
     except Exception as e:
         raise Exception(f"Cannot create the output pyramid descriptor from the parameters: {e}")
 
@@ -133,12 +140,12 @@ def work(config: Dict, dry: bool = False) -> None:
         for split_file_object in split_file_objects:
             split_file_object.write(f"levels {source.bottom} {cut_level} {source.top}\n")
             split_file_object.write(
-                f"getmap_infos {width_getmap_count} {height_getmap_count} {url} {extension}\n"
+                f"getmap_infos {width_getmap_count} {height_getmap_count} {url} {extension} {samplesperpixel} {sampleformat}\n"
             )
 
         finisher_file_object.write(f"levels {source.bottom} {cut_level} {source.top}\n")
         finisher_file_object.write(
-            f"getmap_infos {width_getmap_count} {height_getmap_count} {url} {extension}\n"
+            f"getmap_infos {width_getmap_count} {height_getmap_count} {url} {extension} {samplesperpixel} {sampleformat}\n"
         )
 
         # On demande le calcul parallélisable des dalles du niveau de coupure et en dessous

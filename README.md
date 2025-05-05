@@ -1,6 +1,6 @@
 # Outils ROK4 Python
 
-![ROK4 Logo](https://rok4.github.io/assets/images/rok4.png)
+![ROK4 Logo](https://rok4.github.io/assets/images/rok4-256.png)
 
 Ce projet contient des outils de gestion des pyramides de données, écrits en Python.
 

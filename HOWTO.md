@@ -4,9 +4,13 @@
 ```sh
 pyr2pyr --role check --conf path_to_file/PM.json
 pyr2pyr --role master --conf path_to_file/PM.json
+
+# Les lignes de commandes suivantes contenant l'option split peuvent être lancées en parallèle
+
 pyr2pyr --role agent --conf path_to_file/PM.json --split 1
 pyr2pyr --role agent --conf path_to_file/PM.json --split 2
 pyr2pyr --role agent --conf path_to_file/PM.json --split 3
+
 pyr2pyr --role finisher --conf path_to_file/PM.json
 ```
 

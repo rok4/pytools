@@ -2,7 +2,12 @@
 
 ### PYR2PYR : un exemple de ligne de commande à lancer :
 ```sh
-pyr2pyr --role check --conf path_to_file/PM.json | pyr2pyr --role master --conf path_to_file/PM.json |  pyr2pyr --role agent --conf path_to_file/PM.json --split 3 | pyr2pyr --role finisher --conf path_to_file/PM.json
+pyr2pyr --role check --conf path_to_file/PM.json
+pyr2pyr --role master --conf path_to_file/PM.json
+pyr2pyr --role agent --conf path_to_file/PM.json --split 1
+pyr2pyr --role agent --conf path_to_file/PM.json --split 2
+pyr2pyr --role agent --conf path_to_file/PM.json --split 3
+pyr2pyr --role finisher --conf path_to_file/PM.json
 ```
 
 ### JOINCACHE : Exemple de fichier de configuration :

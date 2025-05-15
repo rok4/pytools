@@ -57,9 +57,20 @@ make-layer --pyramids s3://pyramids/ALTI.json  --name ALTI_data --styles normal 
 ```
 Voici le fichier de résultats au format JSON `ALTI_data.json` obtenu :
 ```json 
-{"title": "ALTI_data", "abstract": "bicubic", "keywords": ["RASTER", "my_data"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 14.221788628396906, "west": -61.435546874999375,
- "north": 14.944784875087676, "east": -60.64453124999938}, "pyramids": [{"bottom_level": "13", "top_level": "0", "path": "s3://pyramids/ALTI.json"}], "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WG
-S84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal", "normal"], "resampling": "nn"}
+{   "title": "ALTI_data", 
+    "abstract": "bicubic", 
+    "keywords": ["RASTER", "my_data"], 
+    "wmts": {"authorized": true}, 
+    "tms": {"authorized": true}, 
+    "bbox": {"south": 14.221788628396906, 
+    "west": -61.435546874999375,
+    "north": 14.944784875087676, 
+    "east": -60.64453124999938}, 
+    "pyramids": [{"bottom_level": "13", "top_level": "0", "path": "s3://pyramids/ALTI.json"}],
+    "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, 
+    "styles": ["normal", "normal"], 
+    "resampling": "nn"
+}
 ```
 
 ### PYROLYSE : un exemple de ligne de commande à lancer :

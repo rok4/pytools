@@ -1,9 +1,11 @@
-## PYR2PYR : un exemple de ligne de commande à lancer :
+## Exemple de cas d'utilisations des fichiers exécutables du projet ROK4
+
+### PYR2PYR : un exemple de ligne de commande à lancer :
 ```sh
-pyr2pyr --role check --conf Téléchargements/PM.json | pyr2pyr --role master --conf Téléchargements/PM.json |  pyr2pyr --role agent --conf Téléchargements/PM.json --split 3 | pyr2pyr --role finisher --conf Téléchargements/PM.json
+pyr2pyr --role check --conf path_to_file/PM.json | pyr2pyr --role master --conf path_to_file/PM.json |  pyr2pyr --role agent --conf path_to_file/PM.json --split 3 | pyr2pyr --role finisher --conf path_to_file/PM.json
 ```
 
-## JOINCACHE : Exemple de fichier de configuration :
+### JOINCACHE : Exemple de fichier de configuration :
 
 *   Exemple de fichier de configuration valide `exemple_valid_json.json`:
   ```json
@@ -18,7 +20,7 @@ pyr2pyr --role check --conf Téléchargements/PM.json | pyr2pyr --role master --
             "source": {
                 "type": "PYRAMIDS",
                 "descriptors": [
-		    "~/Téléchargements/ALTI.json"]
+		    "path_to_file/ALTI.json"]
             }
         }
     ],
@@ -40,18 +42,18 @@ pyr2pyr --role check --conf Téléchargements/PM.json | pyr2pyr --role master --
     Valid configuration !
   ```
 
-## MAKELAYER : un exemple de ligne de commande à lancer :
+### MAKELAYER : un exemple de ligne de commande à lancer :
 ```sh
-make-layer --pyramids s3://pyramids/ALTI.json  --name my_data --styles normal --title my_data --resampling bicubic --directory .
+make-layer --pyramids s3://pyramids/ALTI.json  --name ALTI_data --styles normal --title ALTI --resampling bicubic --directory .
 ```
-Voici le fichier de résultats au format JSON `my_data.json` obtenu :
+Voici le fichier de résultats au format JSON `ALTI_data.json` obtenu :
 ```json 
-{"title": "my_data", "abstract": "bicubic", "keywords": ["RASTER", "my_data"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 14.221788628396906, "west": -61.435546874999375,
+{"title": "ALTI_data", "abstract": "bicubic", "keywords": ["RASTER", "my_data"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 14.221788628396906, "west": -61.435546874999375,
  "north": 14.944784875087676, "east": -60.64453124999938}, "pyramids": [{"bottom_level": "13", "top_level": "0", "path": "s3://pyramids/ALTI.json"}], "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WG
 S84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal", "normal"], "resampling": "nn"}
 ```
 
-## PYROLYSE : un exemple de ligne de commande à lancer :
+### PYROLYSE : un exemple de ligne de commande à lancer :
 ```sh
 pyrolyse --pyramid s3://pyramids/ALTI.json --output resultats.json --tiles --progress --deciles --ratio 1
 ```
@@ -70,7 +72,17 @@ sizes": [77899], "link_count": 0, "tile_sizes": [283]}, "2": {"slab_count": 1, "
 875, 0.0024838273999193915, 0.0027725769996322924, 0.002991372598626185, 0.0032549347990425298, 0.004386014799820259, 0.005820798000422655, 0.006239024000024074]}
 ```
 
-## TMSIZER : un exemple de lignes de commande avec différents filtres :
+### TMSIZER : un exemple de lignes de commande avec différents filtres :
+
+#### TMSIZER : un exemple de lignes de commande avec un filtre de 59 requêtes pour générer l'image :
+
+Dans l'exemple ci-après, on a 59 requêtes pris en compte pour générer l'image, en fonction des filtres choisis et de la zone couverte par la carte de chaleur:
+```sh
+tmsizer -i requests.txt --tms PM -io levels=0,15 -io layer=LAYER.NAME2 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif
+HeatmapProcessor : 59 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))
+```
+
+#### TMSIZER : un exemple de lignes de commande avec un filtre de 81 requêtes pour générer l'image :
 
 Dans l'exemple ci-après, on a 81 requêtes pris en compte pour générer l'image, en fonction des filtres choisis et de la zone couverte par la carte de chaleur:
 ```sh
@@ -78,14 +90,10 @@ tmsizer -i requests.txt --tms PM -io levels=15,12 -io layer=LAYER.NAME2 -if GETT
 HeatmapProcessor : 81 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))
 ```
 
+#### TMSIZER : un exemple de lignes de commande avec un filtre de 110 requêtes pour générer l'image :
+
 Dans l'exemple ci-après, on a 110 requêtes pris en compte pour générer l'image, en fonction des filtres choisis et de la zone couverte par la carte de chaleur:
 ```sh
 tmsizer -i requests.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif
 HeatmapProcessor : 110 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))
-```
-
-Dans l'exemple ci-après, on a 59 requêtes pris en compte pour générer l'image, en fonction des filtres choisis et de la zone couverte par la carte de chaleur:
-```sh
-tmsizer -i requests.txt --tms PM -io levels=0,15 -io layer=LAYER.NAME2 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif
-HeatmapProcessor : 59 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))
 ```

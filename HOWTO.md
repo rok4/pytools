@@ -1,6 +1,14 @@
 ## Exemple de cas d'utilisations des fichiers exécutables du projet ROK4
 
 ### PYR2PYR : un exemple de ligne de commande à lancer :
+
+Cet exemple s'appuie sur l'image docker rok4/dataset en lançant la commande suivante depuis le dépôt comme suit :
+```sh
+docker run -p 9000:9000 -p 9001:9001 rok4/dataset:minio
+```
+
+et une interface graphique de gestion est disponible à l'URL http://localhost:9001/buckets (accès : rok4 / rok4S3storage) :
+
 ```sh
 pyr2pyr --role check --conf path_to_file/PM.json
 pyr2pyr --role master --conf path_to_file/PM.json
@@ -53,6 +61,13 @@ pyr2pyr --role finisher --conf path_to_file/PM.json
 
 ### MAKELAYER : un exemple de ligne de commande à lancer :
 
+Cet exemple s'appuie sur l'image docker rok4/dataset en lançant la commande suivante depuis le dépôt comme suit :
+```sh
+docker run -p 9000:9000 -p 9001:9001 rok4/dataset:minio
+```
+
+et une interface graphique de gestion est disponible à l'URL http://localhost:9001/buckets (accès : rok4 / rok4S3storage) :
+
 ```sh
 make-layer --pyramids s3://pyramids/ALTI.json  --name ALTI_data --styles normal --title ALTI --resampling bicubic --directory .
 ```
@@ -79,6 +94,13 @@ Voici le fichier de résultats au format JSON `ALTI_data.json` obtenu :
 ```
 
 ### PYROLYSE : un exemple de ligne de commande à lancer :
+
+Cet exemple s'appuie sur l'image docker rok4/dataset en lançant la commande suivante depuis le dépôt comme suit :
+```sh
+docker run -p 9000:9000 -p 9001:9001 rok4/dataset:minio
+```
+
+et une interface graphique de gestion est disponible à l'URL http://localhost:9001/buckets (accès : rok4 / rok4S3storage) :
 
 ```sh
 pyrolyse --pyramid s3://pyramids/ALTI.json --output resultats.json --tiles --progress --deciles --ratio 1

@@ -67,7 +67,10 @@ Voici le fichier de résultats au format JSON `ALTI_data.json` obtenu :
     "north": 14.944784875087676, 
     "east": -60.64453124999938}, 
     "pyramids": [{"bottom_level": "13", "top_level": "0", "path": "s3://pyramids/ALTI.json"}],
-    "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, 
+    "wms": {
+            "authorized": true, 
+            "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]
+            }, 
     "styles": ["normal", "normal"], 
     "resampling": "nn"
 }

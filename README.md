@@ -21,6 +21,8 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 ### PYR2PYR
 
+Installer la commande `jsonschema2md` en tapant `pip install jsonschema2md`
+
 PYR2PYR est un outil de copie d'une pyramide d'un stockage à un autre. Il est possible de filtrer les dalles transférée en précisant une taille limite sous laquelle les données ne sont pas recopiées. La copie des dalles est parallélisable. Si des signatures MD5 sont présente dans le fichier liste, elles sont contrôlées après recopie.
 
 Un exemple de configuration est affichable avec la commande `pyr2pyr --role example` et l'appel `pyr2pyr --role check --conf conf.json` permet de valider un fichier de configuration. Le fichier de configuration peut être un objet, auquel cas le chemin doit être préfixé par le type de stockage (exemple : `s3://bucket/configuration.json`)
@@ -34,7 +36,7 @@ Une copie complète d'une pyramide implique l'utilisation de l'outil avec les 3 
     * Appel : `pyr2pyr --role master --conf conf.json`
 2. Rôle `agent` :
     * Actions : lecture de la TODO list depuis le dossier de traitement et recopie des dalles
-    * Appel (un appel par TODO list) : `pyr2pyr --role agent --conf conf.json --split X`
+    * Appel (un appel par TODO list) : `pyr2pyr --role agent --conf conf.json --split X` où X : est un entier naturel.
 3. Rôle `finisher` :
     * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
     * Appel : `pyr2pyr --role finisher --conf conf.json`
@@ -62,6 +64,10 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
     - **`parallelization`** *(integer)*: Parallelization level, number of todo lists and agents working at the same time. Minimum: `1`. Default: `1`.
     - **`follow_links`** *(boolean)*: Do we follow links (data slabs in others pyramids than the 'from' one). Default: `False`.
     - **`slab_limit`** *(integer)*: Minimum slab size (if under, we do not copy). Minimum: `0`. Default: `0`.
+  
+* Exemple d'utilisation de pyr2pyr :
+  
+![ROK4 PYR2PYR](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#pyr2pyr--un-exemple-de-ligne-de-commande-%C3%A0-lancer-)
 
 ### JOINCACHE
 
@@ -82,6 +88,8 @@ Un calcul complet d'une pyramide implique l'utilisation de l'outil avec les 3 mo
 3. Rôle `finisher` :
     * Actions : lecture des TODO lists pour écrire le fichier liste final et écriture du descripteur de la pyramide en sortie.
     * Appel : `joincache --role finisher --conf conf.json`
+
+![ROK4 PYTOOLS FICHIER DE CONFIGURATION](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#joincache--exemple-de-fichier-de-configuration-)
 
 #### Configuration
 
@@ -126,6 +134,8 @@ Utilisation : `make-layer [-h] [--version] --pyramids storage://path/to/pyr.json
 * `--resampling {nn,linear,bicubic,lanczos_2,lanczos_3,lanczos_4}` : type d'interpolation pour le réechantillonnage
 * `--directory s3://layers_bucket` : dossier, fichier ou objet, dans lequel écrire le descripteur de pyramide. Affiche dans la sortie standard si non fourni
 
+![ROK4 MAKELAYER](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#makelayer--un-exemple-de-ligne-de-commande-%C3%A0-lancer-)
+
 ### PYROLYSE
 
 PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
@@ -143,6 +153,8 @@ Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [-
 * `--deciles` : avoir les déciles plutôt que toutes les valeurs de taille et de temps d'accès
 * `--centiles` : avoir les centiles plutôt que toutes les valeurs de taille et de temps d'accès
 * `--ratio N` : ratio à appliquer sur la mesure de taille (un parmi <ratio>, 100 par défaut). Toutes les dalles sont comptées
+
+![ROK4 PYROLYSE](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#pyrolyse--un-exemple-de-ligne-de-commande-%C3%A0-lancer-)
 
 ### TMSIZER
 
@@ -181,6 +193,12 @@ Exemple (GETTILE_PARAMS -> HEATMAP) :
 Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau:
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
+
+Le nombre de requêtes pris en compte pour générer l'image, en fonction des filtres et de la zone couverte par la carte de chaleur :
+
+```HeatmapProcessor : 81 hits on image with dimensions (600, 400) and bbox (65000.0, 6100000.0, 665000.0, 6500000.0) (resolutions (1000.0, 1000.0))```
+
+![ROK4 PYTOOLS TMSIZER FILE GETTILES](https://github.com/rok4/pytools/blob/feature/documentation_new_users/HOWTO.md#tmsizer--un-exemple-de-lignes-de-commande-avec-diff%C3%A9rents-filtres-)
 
 ## Compiler la suite d'outils
 

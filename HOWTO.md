@@ -52,9 +52,11 @@ pyr2pyr --role finisher --conf path_to_file/PM.json
   ```
 
 ### MAKELAYER : un exemple de ligne de commande à lancer :
+
 ```sh
 make-layer --pyramids s3://pyramids/ALTI.json  --name ALTI_data --styles normal --title ALTI --resampling bicubic --directory .
 ```
+
 Voici le fichier de résultats au format JSON `ALTI_data.json` obtenu :
 ```json 
 {   "title": "ALTI_data", 
@@ -77,6 +79,7 @@ Voici le fichier de résultats au format JSON `ALTI_data.json` obtenu :
 ```
 
 ### PYROLYSE : un exemple de ligne de commande à lancer :
+
 ```sh
 pyrolyse --pyramid s3://pyramids/ALTI.json --output resultats.json --tiles --progress --deciles --ratio 1
 ```

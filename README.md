@@ -163,11 +163,12 @@ Utilisation : `tmsizer [-h] [--version] --tms <TMS identifier> [-i storage://pat
 
 Conversions possibles (paramètres obligatoires en gras, paramètres facultatifs en italique) :
 
-| Format en entrée | Options d'entrée | Format en sortie | Options de sortie                                             | Description                                                                                             |
-|------------------|------------------|------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et les éventuels niveaux et couches fournies  |
-| GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax> or area=<id>`**, **`dimensions=<width>x<height> or level=<id>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur les éventuels niveaux et couches fournies. Si un niveau est fourni en sortie, on calera la bbox et les résolutions pour avoir un pixel correpondant à l'étendue d'une tuile du niveau. Certaines aires sont prédéfinies pour certaines projections du TMS |
-| GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles du niveau fourni intersectant les géométries en entrée            |
+| Format en entrée | Options d'entrée                                      | Format en sortie | Options de sortie                                                                                    | Description                                                                                                                                                                                                                                                                                                                              |
+|------------------|-------------------------------------------------------|------------------|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`* | COUNT            |                                                                                                      | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et les éventuels niveaux et couches fournies                                                                                                                                                                                                                  |
+| GETTILE_PARAMS   |                                                       | SLAB             | **`size=<widthwise>x<heightwise`**, **`storage=(FILE\|S3)`**                                         | Génère les informations de la dalle contenant chaque tuile requêtée (indices et chemin de stockage)                                                                                                                                                                                                                                      |
+| GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`* | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax> or area=<id>`**, **`dimensions=<width>x<height> or level=<id>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur les éventuels niveaux et couches fournies. Si un niveau est fourni en sortie, on calera la bbox et les résolutions pour avoir un pixel correpondant à l'étendue d'une tuile du niveau. Certaines aires sont prédéfinies pour certaines projections du TMS |
+| GEOMETRY         | **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**     | GETTILE_PARAMS   |                                                                                                      | Génére les paramètres de requête GetTile des tuiles du niveau fourni intersectant les géométries en entrée                                                                                                                                                                                                                               |
 
 Aires prédéfinies pour une carte de chaleur :
 
@@ -178,9 +179,14 @@ Exemple (GETTILE_PARAMS -> HEATMAP) :
 
 `tmsizer -i logs.txt --tms PM -io levels=15,14 -io layer=LAYER.NAME1,LAYER.NAME2,LAYER.NAME3 -if GETTILE_PARAMS -of HEATMAP -oo bbox=65000,6100000,665000,6500000 -oo dimensions=600x400 -o heatmap.tif`
 
-Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau:
+Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau :
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
+
+Exemple (GETTILE_PARAMS -> SLAB) pour une tuile :
+
+`echo "/?TILEMATRIXSET=LAMB93_5cm&TILEMATRIX=18&TILECOL=4158&TILEROW=27790" | tmsizer --tms LAMB93_5cm -if GETTILE_PARAMS -of SLAB -oo storage=S3 -oo size=16x16`
+
 
 ## Compiler la suite d'outils
 

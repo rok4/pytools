@@ -1,47 +1,34 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-import sys
 import argparse
-import logging
-import json
-import os
-import numpy
-import time
-import tempfile
 import copy
-from tqdm import tqdm
+import json
+import logging
+import sys
+import time
 
-from rok4.pyramid import Pyramid, ROK4_IMAGE_HEADER_SIZE, SlabType
-from rok4.storage import put_data_str, get_size, get_path_from_infos, get_data_binary
+import numpy
+from rok4.pyramid import ROK4_IMAGE_HEADER_SIZE, Pyramid, SlabType
+from rok4.storage import get_data_binary, get_path_from_infos, get_size, put_data_str
+from tqdm import tqdm
 
 from rok4_tools import __version__
 
 # Default logger
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.INFO)
 
 args = None
 pyramid = None
 total = None
 pbar = None
 
-stat_part = {
-    "slab_count": 0,
-    "slab_sizes": [],
-    "link_count": 0
-}
+stat_part = {"slab_count": 0, "slab_sizes": [], "link_count": 0}
 
-stats = {
-    "global": {
-        "slab_count": 0,
-        "slab_sizes": [],
-        "link_count": 0
-    },
-    "levels": {}
-}
+stats = {"global": {"slab_count": 0, "slab_sizes": [], "link_count": 0}, "levels": {}}
 
 
-quantiles = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
+quantiles = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+
 
 def parse() -> None:
     """Parse call arguments and check values
@@ -52,72 +39,76 @@ def parse() -> None:
         Exception: option --progress is used without --json
     """
 
-    global args, stat_part, stats
-    
+    global args, stat_part, stats, quantiles
+
     parser = argparse.ArgumentParser(
-        prog = 'pyrolyse',
-        description = "Tool to process statistics about pyramid's data : count and size of tiles and slabs, min and max, by level",
-        epilog = ''
+        prog="pyrolyse",
+        description="Tool to process statistics about pyramid's data : count and size of tiles and slabs, min and max, by level",
+        epilog="",
     )
 
-    parser.add_argument(
-        '--version',
-        action='version',
-        version='%(prog)s ' + __version__
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
 
     parser.add_argument(
-        '--pyramid',
-        metavar='storage://path/to/pyr.json',
-        action='store',
+        "--pyramid",
+        metavar="storage://path/to/pyr.json",
+        action="store",
         type=str,
-        dest='pyramid',
+        dest="pyramid",
         help="Pyramid's descriptor, to analyse",
-        required=True
+        required=True,
     )
 
     parser.add_argument(
-        '--output',
-        metavar='storage://path/to/conf.json',
-        action='store',
-        dest='output_path',
-        help='File/object to write results. Print in standard output if not provided',
-        required=False
+        "--output",
+        metavar="storage://path/to/conf.json",
+        action="store",
+        dest="output_path",
+        help="File/object to write results. Print in standard output if not provided",
+        required=False,
     )
 
     parser.add_argument(
-        '--tiles',
-        action='store_true',
-        dest='tiles',
-        help='Get size analysis for tiles',
-        required=False
+        "--tiles",
+        action="store_true",
+        dest="tiles",
+        help="Get size analysis for tiles",
+        required=False,
     )
 
     parser.add_argument(
-        '--progress',
-        action='store_true',
-        dest='progress',
-        help='Print a progress bar (only with --output option)',
-        required=False
+        "--progress",
+        action="store_true",
+        dest="progress",
+        help="Print a progress bar (only with --output option)",
+        required=False,
     )
 
     parser.add_argument(
-        '--deciles',
-        action='store_true',
-        dest='deciles',
-        help='Get deciles for sizes and read times rather than values',
-        required=False
+        "--deciles",
+        action="store_true",
+        dest="deciles",
+        help="Get deciles for sizes and read times rather than values",
+        required=False,
     )
 
     parser.add_argument(
-        '--ratio',
+        "--centiles",
+        action="store_true",
+        dest="centiles",
+        help="Get centiles for sizes and read times rather than values",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--ratio",
         type=int,
         metavar="N",
-        action='store',
-        dest='ratio',
+        action="store",
+        dest="ratio",
         default=100,
-        help='Ratio of measured slabs and tiles (<ratio> choose one). All slabs are counted',
-        required=False
+        help="Ratio of measured slabs and tiles (<ratio> choose one). All slabs are counted",
+        required=False,
     )
 
     args = parser.parse_args()
@@ -128,7 +119,12 @@ def parse() -> None:
         stats["perfs"] = []
 
     if args.progress and args.output_path is None:
-        raise Exception("Print a progress bar is not possible without output file for statistics (--json option)")
+        raise Exception(
+            "Print a progress bar is not possible without output file for statistics (--json option)"
+        )
+
+    if args.centiles:
+        quantiles = list(numpy.arange(0, 1.01, 0.01))
 
 
 def load() -> None:
@@ -140,7 +136,7 @@ def load() -> None:
         MissingAttributeError: Attribute is missing in the content
         StorageError: Storage read issue (pyramid descriptor or TMS)
         MissingEnvironmentError: Missing object storage informations or TMS root directory
-    """    
+    """
 
     global pyramid, total, pbar
 
@@ -149,6 +145,7 @@ def load() -> None:
 
     if args.progress:
         pbar = tqdm(total=total)
+
 
 def work() -> None:
     """Browse pyramid's list and memorize wanted informations
@@ -171,7 +168,7 @@ def work() -> None:
 
         stats["global"]["slab_count"] += 1
         stats["levels"][level]["slab_count"] += 1
-        
+
         if infos["link"]:
             stats["global"]["link_count"] += 1
             stats["levels"][level]["link_count"] += 1
@@ -187,14 +184,14 @@ def work() -> None:
                 binary_sizes = get_data_binary(slab_path, (slab_sizes_offset, slab_sizes_size))
                 toc = time.perf_counter()
                 stats["perfs"].append(toc - tic)
-                sizes = list(filter(
-                    lambda e: e != 0,
-                    numpy.frombuffer(
-                        binary_sizes,
-                        dtype = numpy.dtype('uint32'),
-                        count = slab_tiles_count
-                    ).tolist()
-                ))
+                sizes = list(
+                    filter(
+                        lambda e: e != 0,
+                        numpy.frombuffer(
+                            binary_sizes, dtype=numpy.dtype("uint32"), count=slab_tiles_count
+                        ).tolist(),
+                    )
+                )
 
                 # On ne garde que la première taille de tuile non nulle pour les statistiques
                 stats["levels"][level]["tile_sizes"].append(sizes[0])
@@ -207,27 +204,38 @@ def work() -> None:
         pbar.close()
 
     # calcul des quantiles
-    if len(stats["global"]["slab_sizes"]) > 1 and args.deciles:
-        stats["global"]["slab_sizes"] = numpy.quantile(stats["global"]["slab_sizes"], quantiles).tolist()
+    if len(stats["global"]["slab_sizes"]) > 1 and (args.deciles or args.centiles):
+        stats["global"]["slab_sizes"] = numpy.quantile(
+            stats["global"]["slab_sizes"], quantiles
+        ).tolist()
 
     if args.tiles:
-        if len(stats["perfs"]) > 1 and args.deciles:
+        if len(stats["perfs"]) > 1 and (args.deciles or args.centiles):
             stats["perfs"] = numpy.quantile(stats["perfs"], quantiles).tolist()
 
-        if len(stats["global"]["tile_sizes"]) > 1 and args.deciles:
-            stats["global"]["tile_sizes"] = numpy.quantile(stats["global"]["tile_sizes"], quantiles).tolist()
+        if len(stats["global"]["tile_sizes"]) > 1 and (args.deciles or args.centiles):
+            stats["global"]["tile_sizes"] = numpy.quantile(
+                stats["global"]["tile_sizes"], quantiles
+            ).tolist()
 
     for level in stats["levels"]:
-        if len(stats["levels"][level]["slab_sizes"]) > 1 and args.deciles:
-            stats["levels"][level]["slab_sizes"] = numpy.quantile(stats["levels"][level]["slab_sizes"], quantiles).tolist()
+        if len(stats["levels"][level]["slab_sizes"]) > 1 and (args.deciles or args.centiles):
+            stats["levels"][level]["slab_sizes"] = numpy.quantile(
+                stats["levels"][level]["slab_sizes"], quantiles
+            ).tolist()
 
-        if args.tiles and len(stats["levels"][level]["tile_sizes"]) > 1 and args.deciles:
-            stats["levels"][level]["tile_sizes"] = numpy.quantile(stats["levels"][level]["tile_sizes"], quantiles).tolist()
+        if (
+            args.tiles
+            and len(stats["levels"][level]["tile_sizes"]) > 1
+            and (args.deciles or args.centiles)
+        ):
+            stats["levels"][level]["tile_sizes"] = numpy.quantile(
+                stats["levels"][level]["tile_sizes"], quantiles
+            ).tolist()
 
 
 def write() -> None:
-    """Write the informations as JSON, in the standard output or a file
-    """    
+    """Write the informations as JSON, in the standard output or a file"""
     if args.output_path is None:
         print(json.dumps(stats))
     else:
@@ -235,7 +243,6 @@ def write() -> None:
 
 
 def main() -> None:
-
     try:
         parse()
         load()
@@ -252,5 +259,6 @@ def main() -> None:
 
     sys.exit(0)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     main()

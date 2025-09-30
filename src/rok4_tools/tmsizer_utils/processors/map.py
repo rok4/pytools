@@ -6,22 +6,25 @@ The module contains the following classes:
 - `Tileindex2gettileProcessor` - Generate WMTS GetTile query parameters from tile index
 - `Tileindex2pointProcessor` - Generate the tile's center coordinates from tile index
 - `Geometry2tileindexProcessor` - Generate all tiles' indices intersecting the input geometry
+- `Tileindex2slabProcessor` - Determine slab indices and path from tile indices
 """
 
-import sys
-from typing import Dict, List, Tuple, Union, Iterator
-from math import floor
-from urllib.parse import urlparse, parse_qs
+import os
+from typing import Iterator, Tuple
+from urllib.parse import parse_qs, urlparse
 
 from osgeo import gdal, ogr, osr
+
 ogr.UseExceptions()
 osr.UseExceptions()
 gdal.UseExceptions()
 
-from rok4.tile_matrix_set import TileMatrixSet
+from rok4.enums import StorageType
+from rok4.pyramid import b36_path_encode
 from rok4.utils import bbox_to_geometry
 
 from rok4_tools.tmsizer_utils.processors.processor import Processor
+
 
 class Gettile2tileindexProcessor(Processor):
     """Processor extracting tile index from a WMTS GetTile URL
@@ -47,10 +50,12 @@ class Gettile2tileindexProcessor(Processor):
         Raises:
             ValueError: Input format is not allowed
             ValueError: Provided level is not in the pivot TMS
-        """        
+        """
 
         if input.format not in self.input_formats_allowed:
-            raise ValueError(f"Input format {input.format} is not handled for Gettile2tileindexProcessor : allowed formats are {self.input_formats_allowed}")
+            raise ValueError(
+                f"Input format {input.format} is not handled for Gettile2tileindexProcessor : allowed formats are {self.input_formats_allowed}"
+            )
 
         super().__init__("TILE_INDEX")
 
@@ -65,15 +70,15 @@ class Gettile2tileindexProcessor(Processor):
 
         self.__input = input
         if "layers" in options.keys():
-            self.__layers = options["layers"].split(",")
+            self.__layers = options["layers"].upper().split(",")
         else:
             self.__layers = None
 
     def process(self) -> Iterator[Tuple[str, int, int]]:
         """Read an item from the input processor and extract tile index
 
-        Used query parameters are TILEMATRIXSET, TILEMATRIX, TILECOL and TILEROW. If one is missing, item is passed. 
-        TILEMATRISET have to be the pivot TMS's name (or just preffixed by its name). TILEMATRIX have to be present in the pivot TMS. 
+        Used query parameters are TILEMATRIXSET, TILEMATRIX, TILECOL and TILEROW. If one is missing, item is passed.
+        TILEMATRISET have to be the pivot TMS's name (or just preffixed by its name). TILEMATRIX have to be present in the pivot TMS.
         If filtering levels are provided, unmatched TILEMATRIX are passed. If filtering layers are provided, unmatched LAYER are passed.
 
         Examples:
@@ -93,7 +98,7 @@ class Gettile2tileindexProcessor(Processor):
 
         Yields:
             Iterator[Tuple[str, int, int]]: Tile index (level, col, row)
-        """  
+        """
 
         if self.__input.format == "GETTILE_PARAMS":
             for item in self.__input.process():
@@ -101,7 +106,6 @@ class Gettile2tileindexProcessor(Processor):
 
                 qs = parse_qs(urlparse(item.upper()).query)
                 try:
-
                     # On se limite à un niveau et ce n'est pas celui de la requête
                     if self.__levels is not None and qs["TILEMATRIX"][0] not in self.__levels:
                         continue
@@ -111,21 +115,114 @@ class Gettile2tileindexProcessor(Processor):
                         continue
 
                     # La requête n'utilise pas le TMS en entrée
-                    if qs["TILEMATRIXSET"][0] != self.tms.name and not qs["TILEMATRIXSET"][0].startswith(f"{self.tms.name}_"):
+                    if qs["TILEMATRIXSET"][0] != self.tms.name.upper() and not qs["TILEMATRIXSET"][
+                        0
+                    ].startswith(f"{self.tms.name.upper()}_"):
                         continue
 
                     # La requête demande un niveau que le TMS ne possède pas
                     if self.tms.get_level(qs["TILEMATRIX"][0]) is None:
                         continue
 
-                    yield (str(qs["TILEMATRIX"][0]),int(qs["TILECOL"][0]),int(qs["TILEROW"][0]))
-                except Exception as e:
+                    yield (str(qs["TILEMATRIX"][0]), int(qs["TILECOL"][0]), int(qs["TILEROW"][0]))
+                except Exception:
                     # La requête n'est pas un gettile ou n'est pas valide, il manque un paramètre, ou il a un mauvais format
                     # on la passe simplement
                     pass
 
     def __str__(self) -> str:
         return f"Gettile2tileindexProcessor : {self._processed} {self.__input.format} items processed, extracting tile's indices"
+
+
+class Tileindex2slabProcessor(Processor):
+    """Processor generating WMTS GetTile query parameters from tile index
+
+    Accepted input format is "TILE_INDEX" and output format is "GETTILE_PARAMS"
+
+    Attributes:
+        __input (Processor): Processor from which data is read
+        __storage_type (StorageType): Storage type for slab's path
+        __slab_size (Tuple[int, int]): Slab size, in tiles, widthwise and heightwise
+    """
+
+    input_formats_allowed = ["TILE_INDEX"]
+
+    def __init__(self, input: Processor, **options):
+        """Constructor method
+
+        Args:
+            input (Processor): Processor from which data is read
+            **storage (str): Storage type for slab's path
+            **size (str): Slab size, in tiles. Format "<widthwise>x<heightwise>"
+
+        Raises:
+            ValueError: Input format is not allowed
+        """
+
+        if input.format not in self.input_formats_allowed:
+            raise ValueError(
+                f"Input format {input.format} is not handled for Tileindex2slabProcessor : allowed formats are {self.input_formats_allowed}"
+            )
+
+        super().__init__("SLAB")
+
+        self.__input = input
+
+        try:
+            self.__storage_type = StorageType[options["storage"]]
+
+        except KeyError:
+            raise KeyError(
+                "Option storage is required to generate slab infos from tile indices and have to be a valid storage type (FILE or S3)"
+            )
+
+        try:
+            self.__slab_size = [int(c) for c in options["size"].split("x")]
+            self.__slab_size = tuple(self.__slab_size)
+
+        except KeyError as e:
+            raise KeyError(f"Option {e} is required to generate slab infos from tile indices")
+
+    def process(self) -> Iterator[Tuple[str, int, int, str]]:
+        """Read a tile index from the input processor and generate slab's infos (path and indices)
+
+        Examples:
+
+            Get slab informations
+
+                from rok4_tools.tmsizer_utils.processors.map import Tileindex2slabProcessor
+
+                try:
+                    # Creation of Processor source_processor with format TILE_INDEX
+                    processor = Tileindex2slabProcessor(source_processor)
+                    for item in processor.process():
+                        slab_infos = item
+
+                except Exception as e:
+                    print("{e}")
+
+        Yields:
+            Iterator[Tuple[str, int, int, str]]: Slab index and path (level, col, row, path)
+        """
+
+        if self.__input.format == "TILE_INDEX":
+            for item in self.__input.process():
+                self._processed += 1
+
+                (level, col, row) = item
+
+                slab_col = col // self.__slab_size[0]
+                slab_row = row // self.__slab_size[1]
+
+                if self.__storage_type == StorageType.FILE:
+                    slab_path = os.path.join("DATA", level, b36_path_encode(slab_col, slab_row, 2))
+                else:
+                    slab_path = f"DATA_{level}_{slab_col}_{slab_row}"
+
+                yield (level, slab_col, slab_row, slab_path)
+
+    def __str__(self) -> str:
+        return f"Tileindex2gettileProcessor : {self._processed} {self.__input.format} items processed, generating GetTile's query parameters"
 
 
 class Tileindex2gettileProcessor(Processor):
@@ -147,10 +244,12 @@ class Tileindex2gettileProcessor(Processor):
 
         Raises:
             ValueError: Input format is not allowed
-        """  
+        """
 
         if input.format not in self.input_formats_allowed:
-            raise ValueError(f"Input format {input.format} is not handled for Tileindex2gettileProcessor : allowed formats are {self.input_formats_allowed}")
+            raise ValueError(
+                f"Input format {input.format} is not handled for Tileindex2gettileProcessor : allowed formats are {self.input_formats_allowed}"
+            )
 
         super().__init__("GETTILE_PARAMS")
 
@@ -176,7 +275,7 @@ class Tileindex2gettileProcessor(Processor):
 
         Yields:
             Iterator[str]: GetTile query parameters TILEMATRIXSET=<tms>&TILEMATRIX=<level>&TILECOL=<col>&TILEROW=<row>
-        """  
+        """
 
         if self.__input.format == "TILE_INDEX":
             for item in self.__input.process():
@@ -188,6 +287,7 @@ class Tileindex2gettileProcessor(Processor):
 
     def __str__(self) -> str:
         return f"Tileindex2gettileProcessor : {self._processed} {self.__input.format} items processed, generating GetTile's query parameters"
+
 
 class Tileindex2pointProcessor(Processor):
     """Processor generating the tile's center coordinates from tile index
@@ -208,10 +308,12 @@ class Tileindex2pointProcessor(Processor):
 
         Raises:
             ValueError: Input format is not allowed
-        """  
+        """
 
         if input.format not in self.input_formats_allowed:
-            raise ValueError(f"Input format {input.format} is not handled for Tileindex2pointProcessor : allowed formats are {self.input_formats_allowed}")
+            raise ValueError(
+                f"Input format {input.format} is not handled for Tileindex2pointProcessor : allowed formats are {self.input_formats_allowed}"
+            )
 
         super().__init__("POINT")
 
@@ -237,7 +339,7 @@ class Tileindex2pointProcessor(Processor):
 
         Yields:
             Iterator[Tuple[float, float]]: point coordinates (x,y)
-        """  
+        """
 
         if self.__input.format == "TILE_INDEX":
             for item in self.__input.process():
@@ -247,11 +349,11 @@ class Tileindex2pointProcessor(Processor):
                 try:
                     bb = self.tms.get_level(level).tile_to_bbox(col, row)
 
-                    x_center = bb[0] + (bb[2] - bb[0]) / 2;
-                    y_center = bb[1] + (bb[3] - bb[1]) / 2;
+                    x_center = bb[0] + (bb[2] - bb[0]) / 2
+                    y_center = bb[1] + (bb[3] - bb[1]) / 2
 
                     yield (x_center, y_center)
-                except Exception as e:
+                except Exception:
                     # Le niveau n'est pas valide, on passe simplement
                     pass
 
@@ -286,24 +388,27 @@ class Geometry2tileindexProcessor(Processor):
             KeyError: A mandatory option is missing
             ValueError: A mandatory option is not valid
             ValueError: Provided level is not in the pivot TMS
-        """  
+        """
 
         if input.format not in self.input_formats_allowed:
-            raise ValueError(f"Input format {input.format} is not handled for Geometry2tileindexProcessor : allowed formats are {self.input_formats_allowed}")
+            raise ValueError(
+                f"Input format {input.format} is not handled for Geometry2tileindexProcessor : allowed formats are {self.input_formats_allowed}"
+            )
 
         super().__init__("TILE_INDEX")
 
         self.__input = input
 
         try:
-
             if options["format"] not in self.geometry_formats_allowed:
-                raise ValueError(f"Option 'format' for an input geometry is not handled ({options['format']}) : allowed formats are {self.geometry_formats_allowed}")
+                raise ValueError(
+                    f"Option 'format' for an input geometry is not handled ({options['format']}) : allowed formats are {self.geometry_formats_allowed}"
+                )
 
             self.__geometry_format = options["format"]
 
             if self.tms.get_level(options["level"]) is None:
-                raise ValueError(f"Provided level is not in the TMS")
+                raise ValueError("Provided level is not in the TMS")
 
             self.__level = options["level"]
 
@@ -313,7 +418,7 @@ class Geometry2tileindexProcessor(Processor):
     def process(self) -> Iterator[Tuple[str, int, int]]:
         """Read a geometry from the input processor and extract tile index
 
-        Geometry is parsed according to provided format. To determine intersecting tiles, geometry have to be a Polygon or a MultiPolygon. 
+        Geometry is parsed according to provided format. To determine intersecting tiles, geometry have to be a Polygon or a MultiPolygon.
         For an input geometry, all intersecting tiles for the provided level are yielded
 
         Examples:
@@ -333,12 +438,11 @@ class Geometry2tileindexProcessor(Processor):
 
         Yields:
             Iterator[Tuple[str, int, int]]: Tile index (level, col, row)
-        """  
+        """
 
         tile_matrix = self.tms.get_level(self.__level)
 
         if self.__input.format == "GEOMETRY":
-
             for item in self.__input.process():
                 self._processed += 1
 
@@ -350,11 +454,13 @@ class Geometry2tileindexProcessor(Processor):
                         geom = ogr.ForceToMultiPolygon(ogr.CreateGeometryFromJson(item))
                     elif self.__geometry_format == "WKB":
                         geom = ogr.ForceToMultiPolygon(ogr.CreateGeometryFromWkb(item))
-                
+
                     for i in range(0, geom.GetGeometryCount()):
                         g = geom.GetGeometryRef(i)
                         xmin, xmax, ymin, ymax = g.GetEnvelope()
-                        col_min, row_min, col_max, row_max = tile_matrix.bbox_to_tiles((xmin, ymin, xmax, ymax))
+                        col_min, row_min, col_max, row_max = tile_matrix.bbox_to_tiles(
+                            (xmin, ymin, xmax, ymax)
+                        )
 
                         for col in range(col_min, col_max + 1):
                             for row in range(row_min, row_max + 1):

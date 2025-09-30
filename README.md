@@ -109,7 +109,6 @@ Possibilités de contenu du fichier JSON (généré à partir du schéma JSON av
   - **`mask`** *(boolean)*: Source masks used for processing ? Default: `false`.
   - **`only_links`** *(boolean)*: Only links are made ? If true, only top slab will be considered and linked. Default: `false`.
 
-
 ### ASPYRO
 
 L'outil ASPYRO génère une pyramide raster à de services WMS. Seuls les TMS de type quad tree sont gérés. Pour chaque source WMS, le niveau le plus bas est moissoné (requêtes WMS getmap) et les niveaux supérieurs sont calculés par sous échantillonnage 4 par 4 (command merge4tiff).
@@ -208,9 +207,9 @@ Utilisation : `make-layer [-h] [--version] --pyramids storage://path/to/pyr.json
 
 PYROLYSE est un outil d'analyse d'une pyramide, permettant d'avoir le nombre et la taille des dalles et tuiles, au global et par niveau. Les tailles des dalles et des tuiles ne sont pas toutes récupérées : un ratio permet de définir le nombre de mesures (un ratio de 100 entraînera la récupération de la taille d'une dalle sur 100 et d'une de ses tuile). Ce ratio s'applique par niveau (pour ne pas avoir que des données sur le meilleur niveau, celui qui contient le plus de dalles). Lorsque les statistiques sur les tuiles sont activées, on mesure le temps de lecture du header.
 
-Concernant les tailles et les temps d'accès, il est possible de demander le calcul des déciles plutôt que de garder toutes les valeurs.
+Concernant les tailles et les temps d'accès, il est possible de demander le calcul des quantiles plutôt que de garder toutes les valeurs.
 
-Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--ratio N]`
+Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [--json storage://path/to/conf.json] [--tiles] [--progress] [--deciles] [--centiles] [--ratio N]`
 
 * `-h, --help` : affiche l'aide et quitte
 * `--version` : affiche la version et quitte
@@ -219,6 +218,7 @@ Utilisation : `pyrolyse [-h] [--version] --pyramid storage://path/to/pyr.json [-
 * `--tiles` : avoir l'analyse de la taille des tuiles
 * `--progress` : affiche une barre de progression, seulement avec l'option `--output`
 * `--deciles` : avoir les déciles plutôt que toutes les valeurs de taille et de temps d'accès
+* `--centiles` : avoir les centiles plutôt que toutes les valeurs de taille et de temps d'accès
 * `--ratio N` : ratio à appliquer sur la mesure de taille (un parmi <ratio>, 100 par défaut). Toutes les dalles sont comptées
 
 ### TMSIZER
@@ -241,8 +241,9 @@ Utilisation : `tmsizer [-h] [--version] --tms <TMS identifier> [-i storage://pat
 Conversions possibles (paramètres obligatoires en gras, paramètres facultatifs en italique) :
 
 | Format en entrée | Options d'entrée | Format en sortie | Options de sortie                                             | Description                                                                                             |
-|------------------|------------------|------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+|------------------|-------------------------------------------------------|------------------|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*     | COUNT            |                                                               | Compte le nombre de GetTile dans les URLs en entrée utilisant le TMS pivot et les éventuels niveaux et couches fournies  |
+| GETTILE_PARAMS   |                                                       | SLAB             | **`size=<widthwise>x<heightwise`**, **`storage=(FILE\|S3)`**                                         | Génère les informations de la dalle contenant chaque tuile requêtée (indices et chemin de stockage)                                                                                                                                                                                                                                      |
 | GETTILE_PARAMS   | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*     | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax> or area=<id>`**, **`dimensions=<width>x<height> or level=<id>`** | Génère une carte de chaleur des tuiles interrogées sur la zone demandée et sur les éventuels niveaux et couches fournies. Si un niveau est fourni en sortie, on calera la bbox et les résolutions pour avoir un pixel correpondant à l'étendue d'une tuile du niveau. Certaines aires sont prédéfinies pour certaines projections du TMS |
 | GEOMETRY         |  **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`**                | GETTILE_PARAMS   |                   | Génére les paramètres de requête GetTile des tuiles du niveau fourni intersectant les géométries en entrée            |
 
@@ -258,6 +259,9 @@ Exemple (GETTILE_PARAMS -> HEATMAP) :
 Exemple (GETTILE_PARAMS -> HEATMAP) avec une aire prédéfinie et une correspondance pixel-niveau:
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
+Exemple (GETTILE_PARAMS -> SLAB) pour une tuile :
+
+`echo "/?TILEMATRIXSET=LAMB93_5cm&TILEMATRIX=18&TILECOL=4158&TILEROW=27790" | tmsizer --tms LAMB93_5cm -if GETTILE_PARAMS -of SLAB -oo storage=S3 -oo size=16x16`
 
 ## Compiler la suite d'outils
 

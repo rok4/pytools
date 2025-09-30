@@ -5,18 +5,19 @@ The module contains the following classes:
 - `CountProcessor` - Count the number of item read from the input processor
 - `HeatmapProcessor` - Generate an heat map with all point coordinate read from the input processor
 """
-import sys
-import numpy as np
-from typing import Dict, List, Tuple, Union, Iterator
 from math import floor
+from typing import Iterator
 
+import numpy as np
 import rasterio
-from rasterio.transform import from_origin
-from rasterio.io import MemoryFile
 from rasterio import logging
+from rasterio.io import MemoryFile
+from rasterio.transform import from_origin
+
 logging.getLogger().setLevel(logging.ERROR)
 
 from rok4_tools.tmsizer_utils.processors.processor import Processor
+
 
 class CountProcessor(Processor):
     """Processor counting the number of item read from the input processor
@@ -32,7 +33,7 @@ class CountProcessor(Processor):
 
         Args:
             input (Processor): Processor from which data is read
-        """  
+        """
 
         super().__init__("COUNT")
 
@@ -60,7 +61,7 @@ class CountProcessor(Processor):
 
         Yields:
             Iterator[int]: the count of input items
-        """  
+        """
 
         for item in self.__input.process():
             self._processed += 1
@@ -85,17 +86,14 @@ class HeatmapProcessor(Processor):
 
     input_formats_allowed = ["POINT"]
 
-    areas = {
-        "EPSG:3857": {
-            "FXX": [-649498, 5048729, 1173394, 6661417]
-        }
-    }
+    areas = {"EPSG:3857": {"FXX": [-649498, 5048729, 1173394, 6661417]}}
 
     def __init__(self, input: Processor, **options):
         """Constructor method
 
         Args:
             input (Processor): Processor from which data is read
+            **area (str): Predefined bbox, according to the TMS's coordinates system
             **bbox (str): Bounding box of the heat map. Format "<xmin>,<ymin>,<xmax>,<ymax>". Coordinates system have to be the pivot TMS' one
             **dimensions (str): Pixel dimensions of the heat map.Format "<width>x<height>"
 
@@ -104,10 +102,12 @@ class HeatmapProcessor(Processor):
             KeyError: A mandatory option is missing
             ValueError: A mandatory option is not valid
             ValueError: Provided level is not in the pivot TMS
-        """  
+        """
 
         if input.format not in self.input_formats_allowed:
-            raise Exception(f"Input format {input.format} is not handled for HeatmapProcessor : allowed formats are {self.input_formats_allowed}")
+            raise Exception(
+                f"Input format {input.format} is not handled for HeatmapProcessor : allowed formats are {self.input_formats_allowed}"
+            )
 
         super().__init__("FILELIKE")
 
@@ -120,19 +120,29 @@ class HeatmapProcessor(Processor):
             except ValueError as e:
                 raise ValueError(f"Option 'bbox' contains non float values : {e}")
 
-            if len(self.__bbox) != 4 or self.__bbox[0] >= self.__bbox[2] or self.__bbox[1] >= self.__bbox[3]:
-                raise ValueError(f"Option 'bbox' have to be provided with format <xmin>,<ymin>,<xmax>,<ymax> (floats, min < max)")
+            if (
+                len(self.__bbox) != 4
+                or self.__bbox[0] >= self.__bbox[2]
+                or self.__bbox[1] >= self.__bbox[3]
+            ):
+                raise ValueError(
+                    "Option 'bbox' have to be provided with format <xmin>,<ymin>,<xmax>,<ymax> (floats, min < max)"
+                )
 
         elif "area" in options:
             try:
                 self.__bbox = self.areas[self.tms.srs][options["area"]]
-            except KeyError as e:
+            except KeyError:
                 if self.tms.srs in self.areas:
-                    raise ValueError(f"Area '{options['area']}' is not available for the TMS coordinates system ({self.tms.srs}): available areas are {', '.join(self.areas[self.tms.srs].keys())}")
-                else :
-                    raise ValueError(f"No defined areas for the TMS coordinates system ({self.tms.srs})")
+                    raise ValueError(
+                        f"Area '{options['area']}' is not available for the TMS coordinates system ({self.tms.srs}): available areas are {', '.join(self.areas[self.tms.srs].keys())}"
+                    )
+                else:
+                    raise ValueError(
+                        f"No defined areas for the TMS coordinates system ({self.tms.srs})"
+                    )
         else:
-            raise KeyError(f"Option 'bbox' or 'area' is required for a heatmap processing")
+            raise KeyError("Option 'bbox' or 'area' is required for a heatmap processing")
 
         if "dimensions" in options:
             try:
@@ -141,17 +151,25 @@ class HeatmapProcessor(Processor):
             except ValueError as e:
                 raise ValueError(f"Option 'dimensions' contains non integer values : {e}")
 
-            if len(self.__dimensions) != 2 or self.__dimensions[0] <= 0 or self.__dimensions[1] <= 0:
-                raise ValueError(f"Option 'dimensions' have to be provided with format <width>x<height> (positive integers)")
+            if (
+                len(self.__dimensions) != 2
+                or self.__dimensions[0] <= 0
+                or self.__dimensions[1] <= 0
+            ):
+                raise ValueError(
+                    "Option 'dimensions' have to be provided with format <width>x<height> (positive integers)"
+                )
 
             self.__resolutions = (
                 (self.__bbox[2] - self.__bbox[0]) / self.__dimensions[0],
-                (self.__bbox[3] - self.__bbox[1]) / self.__dimensions[1]
+                (self.__bbox[3] - self.__bbox[1]) / self.__dimensions[1],
             )
         elif "level" in options:
             level = self.tms.get_level(options["level"])
             if level is None:
-                raise ValueError(f"The provided level '{options['dimensions']}' (to have one pixel per tile) is not in the TMS")
+                raise ValueError(
+                    f"The provided level '{options['dimensions']}' (to have one pixel per tile) is not in the TMS"
+                )
 
             # On va caler la bbox pour qu'elle coïncide avec les limites de tuiles du niveau demandé
             (col_min, row_min, col_max, row_max) = level.bbox_to_tiles(self.__bbox)
@@ -166,21 +184,20 @@ class HeatmapProcessor(Processor):
             self.__bbox[2] = xmax
             self.__bbox[3] = ymax
 
-            self.__resolutions = (
-                xmax - xmin,
-                ymax - ymin
-            )
+            self.__resolutions = (xmax - xmin, ymax - ymin)
 
             self.__dimensions = (
                 int((self.__bbox[2] - self.__bbox[0]) / self.__resolutions[0]),
-                int((self.__bbox[3] - self.__bbox[1]) / self.__resolutions[1])
+                int((self.__bbox[3] - self.__bbox[1]) / self.__resolutions[1]),
             )
 
         else:
-            raise KeyError(f"Option 'dimensions' or 'level' is required for a heatmap processing")
+            raise KeyError("Option 'dimensions' or 'level' is required for a heatmap processing")
 
         if self.__dimensions[0] > 10000 or self.__dimensions[1] > 10000:
-            raise ValueError(f"Heatmap dimensions have to be less than 10 000 x 10 000: here it's {self.__dimensions}")
+            raise ValueError(
+                f"Heatmap dimensions have to be less than 10 000 x 10 000: here it's {self.__dimensions}"
+            )
 
     def process(self) -> Iterator[MemoryFile]:
         """Read point coordinates from the input processor and accumule them as a heat map
@@ -195,30 +212,34 @@ class HeatmapProcessor(Processor):
 
                 try:
                     # Creation of Processor source_processor with format POINT
-                    
+
                     processor = HeatmapProcessor(source_processor, bbox="65000,6100000,665000,6500000", dimensions="600x400" )
                     f = processor.process().__next__()
 
                     with open("hello.txt", "w") as my_file:
                         my_file.write(f.read())
-                    
+
                 except Exception as e:
                     print("{e}")
 
         Yields:
             Iterator[rasterio.io.MemoryFile]: In-memory GeoTIFF
-        """  
+        """
 
         data = np.zeros((self.__dimensions[1], self.__dimensions[0]), dtype=np.uint32)
 
         if self.__input.format == "POINT":
-
             for item in self.__input.process():
                 self._processed += 1
 
                 (x_center, y_center) = item
 
-                if x_center > self.__bbox[2] or y_center > self.__bbox[3] or x_center < self.__bbox[0] or y_center < self.__bbox[1]:
+                if (
+                    x_center > self.__bbox[2]
+                    or y_center > self.__bbox[3]
+                    or x_center < self.__bbox[0]
+                    or y_center < self.__bbox[1]
+                ):
                     continue
 
                 pcol = floor((x_center - self.__bbox[0]) / self.__resolutions[0])
@@ -228,14 +249,16 @@ class HeatmapProcessor(Processor):
 
         memfile = MemoryFile()
         with memfile.open(
-            driver='GTiff',
+            driver="GTiff",
             height=data.shape[0],
             width=data.shape[1],
             count=1,
             dtype=data.dtype,
             crs=rasterio.CRS.from_string(self.tms.srs),
             nodata=0,
-            transform=from_origin(self.__bbox[0], self.__bbox[3], self.__resolutions[0], self.__resolutions[1]),
+            transform=from_origin(
+                self.__bbox[0], self.__bbox[3], self.__resolutions[0], self.__resolutions[1]
+            ),
         ) as dataset:
             dataset.write(data, indexes=1)
 

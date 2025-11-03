@@ -20,7 +20,7 @@ osr.UseExceptions()
 gdal.UseExceptions()
 
 from rok4.enums import StorageType
-from rok4.pyramid import b36_path_encode
+from rok4.pyramid import b36_path_decode, b36_path_encode
 from rok4.utils import bbox_to_geometry
 
 from rok4_tools.tmsizer_utils.processors.processor import Processor
@@ -134,10 +134,221 @@ class Gettile2tileindexProcessor(Processor):
         return f"Gettile2tileindexProcessor : {self._processed} {self.__input.format} items processed, extracting tile's indices"
 
 
-class Tileindex2slabProcessor(Processor):
-    """Processor generating WMTS GetTile query parameters from tile index
+class Slablist2slabProcessor(Processor):
+    """Processor generating slab informations (indices and path) from pyramid's list items
 
-    Accepted input format is "TILE_INDEX" and output format is "GETTILE_PARAMS"
+    Accepted input format is "PYRAMID_LIST" and output format is "SLAB"
+
+    Attributes:
+        __input (Processor): Processor from which data is read
+        __storage_type (StorageType): Storage type for slab's path
+        __storage_depth (int): Storage depth for slab's path for FILE storage
+    """
+
+    input_formats_allowed = ["PYRAMID_LIST"]
+
+    def __init__(self, input: Processor, **options):
+        """Constructor method
+
+        Args:
+            input (Processor): Processor from which data is read
+            **storage (str): Storage type for slab's path
+
+        Raises:
+            ValueError: Input format is not allowed
+        """
+
+        if input.format not in self.input_formats_allowed:
+            raise ValueError(
+                f"Input format {input.format} is not handled for Slablist2slabProcessor : allowed formats are {self.input_formats_allowed}"
+            )
+
+        super().__init__("SLAB")
+
+        self.__input = input
+
+        try:
+            self.__storage_type = StorageType[options["storage"]]
+
+        except KeyError:
+            raise KeyError(
+                "Option storage is required to generate slab infos from pyramid's list items and have to be a valid storage type (FILE or S3)"
+            )
+
+        if self.__storage_type == StorageType.FILE:
+            try:
+                self.__storage_depth = int(options["depth"])
+
+            except KeyError:
+                raise KeyError(
+                    "Option depth is required to generate slab infos from pyramid's list items for FILE storage"
+                )
+
+    def process(self) -> Iterator[Tuple[str, int, int, str]]:
+        """Read a pyramid's list item from the input processor and generate slab's infos (path and indices)
+
+        Examples:
+
+            Get slab informations
+
+                from rok4_tools.tmsizer_utils.processors.map import Tileindex2slabProcessor
+
+                try:
+                    # Creation of Processor source_processor with format PYRAMID_LIST
+                    processor = Slablist2slabProcessor(source_processor, storage="FILE", depth=2)
+                    for item in processor.process():
+                        slab_infos = item
+
+                except Exception as e:
+                    print("{e}")
+
+        Yields:
+            Iterator[Tuple[str, int, int, str]]: Slab index and path (level, col, row, path)
+        """
+
+        if self.__input.format == "PYRAMID_LIST":
+            # Lecture du header
+            roots = {}
+            header = True
+            for item in self.__input.process():
+                if header:
+                    if item == "#":
+                        header = False
+                    else:
+                        root_id, root_path = item.split("=", 1)
+                        roots[root_id] = root_path
+                    continue
+
+                self._processed += 1
+
+                parts = item.split(" ", 1)
+                slab_path = parts[0]
+
+                if self.__storage_type == StorageType.FILE:
+                    parts = slab_path.split("/")
+                    parts[0] = roots[parts[0]]
+
+                    # Le partie du chemin qui contient la colonne et ligne de la dalle est à la fin, en fonction de la profondeur choisie
+                    # depth = 2 -> on doit utiliser les 3 dernières parties pour la conversion
+                    column, row = b36_path_decode("/".join(parts[-(self.__storage_depth + 1) :]))
+                    level = parts[-(self.__storage_depth + 2)]
+
+                    yield level, column, row, "/".join(parts)
+                else:
+                    root, name = slab_path.split("/")
+                    root = roots[root]
+
+                    parts = name.split("_")
+                    column = parts[-2]
+                    row = parts[-1]
+                    level = parts[-3]
+
+                    yield level, int(column), int(row), f"{root}/{'_'.join(parts)}"
+
+    def __str__(self) -> str:
+        return f"Slablist2slabindexProcessor : {self._processed} {self.__input.format} items processed, generating slab's indices and path"
+
+
+class Slab2pointProcessor(Processor):
+    """Processor generating the slab's center coordinates from slab infos
+
+    Accepted input format is "SLAB" and output format is "POINT"
+
+    Attributes:
+        __input (Processor): Processor from which data is read
+        __slab_size (Tuple[int, int]): Slab size, in tiles, widthwise and heightwise
+        __levels (List[str], optional): Tile matrix identifier(s) to filter data
+    """
+
+    input_formats_allowed = ["SLAB"]
+
+    def __init__(self, input: Processor, **options):
+        """Constructor method
+
+        Args:
+            input (Processor): Processor from which data is read
+            **size (str): Slab size, in tiles. Format "<widthwise>x<heightwise>"
+            **levels (str, optional): Tile matrix identifier(s) to filter data
+
+        Raises:
+            ValueError: Input format is not allowed
+            ValueError: Provided level is not in the pivot TMS
+        """
+
+        if input.format not in self.input_formats_allowed:
+            raise ValueError(
+                f"Input format {input.format} is not handled for Slab2pointProcessor : allowed formats are {self.input_formats_allowed}"
+            )
+
+        super().__init__("POINT")
+
+        try:
+            self.__slab_size = [int(c) for c in options["size"].split("x")]
+            self.__slab_size = tuple(self.__slab_size)
+
+        except KeyError as e:
+            raise KeyError(f"Option {e} is required to generate slab infos from tile indices")
+
+        if "levels" in options.keys():
+            self.__levels = options["levels"].split(",")
+            for l in self.__levels:
+                if self.tms.get_level(l) is None:
+                    raise ValueError(f"The provided level '{l}' is not in the TMS")
+        else:
+            self.__levels = None
+
+        self.__input = input
+
+    def process(self) -> Iterator[Tuple[float, float]]:
+        """Read a tile index from the input processor and generate the tile's center coordinates
+
+        Examples:
+
+            Get slab's center coordinates
+
+                from rok4_tools.tmsizer_utils.processors.map import Slab2pointProcessor
+
+                try:
+                    # Creation of Processor source_processor with format SLAB
+                    processor = Slab2pointProcessor(source_processor, size="16x16")
+                    for item in processor.process():
+                        (x, y) = item
+
+                except Exception as e:
+                    print("{e}")
+
+        Yields:
+            Iterator[Tuple[float, float]]: point coordinates (x,y)
+        """
+
+        if self.__input.format == "SLAB":
+            for item in self.__input.process():
+                self._processed += 1
+
+                (level, col, row, path) = item
+
+                if self.__levels is not None and level not in self.__levels:
+                    continue
+
+                try:
+                    bb = self.tms.get_level(level).slab_to_bbox(col, row, self.__slab_size)
+
+                    x_center = bb[0] + (bb[2] - bb[0]) / 2
+                    y_center = bb[1] + (bb[3] - bb[1]) / 2
+
+                    yield (x_center, y_center)
+                except Exception:
+                    # Le niveau n'est pas valide, on passe simplement
+                    pass
+
+    def __str__(self) -> str:
+        return f"Slab2pointProcessor : {self._processed} {self.__input.format} items processed, extracting slab's center coordinates"
+
+
+class Tileindex2slabProcessor(Processor):
+    """Processor generating slab's informations from tile index
+
+    Accepted input format is "TILE_INDEX" and output format is "SLAB"
 
     Attributes:
         __input (Processor): Processor from which data is read
@@ -194,7 +405,7 @@ class Tileindex2slabProcessor(Processor):
 
                 try:
                     # Creation of Processor source_processor with format TILE_INDEX
-                    processor = Tileindex2slabProcessor(source_processor)
+                    processor = Tileindex2slabProcessor(source_processor, storage="S3", size="8x8")
                     for item in processor.process():
                         slab_infos = item
 
@@ -222,7 +433,7 @@ class Tileindex2slabProcessor(Processor):
                 yield (level, slab_col, slab_row, slab_path)
 
     def __str__(self) -> str:
-        return f"Tileindex2gettileProcessor : {self._processed} {self.__input.format} items processed, generating GetTile's query parameters"
+        return f"Tileindex2slabProcessor : {self._processed} {self.__input.format} items processed, generating slab's indices and path"
 
 
 class Tileindex2gettileProcessor(Processor):

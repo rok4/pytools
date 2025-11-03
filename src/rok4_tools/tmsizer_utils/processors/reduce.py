@@ -86,7 +86,11 @@ class HeatmapProcessor(Processor):
 
     input_formats_allowed = ["POINT"]
 
-    areas = {"EPSG:3857": {"FXX": [-649498, 5048729, 1173394, 6661417]}}
+    areas = {
+        "EPSG:3857": {"FXX": [-649498, 5048729, 1173394, 6661417]},
+        "EPSG:2154": {"FXX": [28133, 5942256, 1322512, 7210428]},
+        "IGNF:LAMB93": {"FXX": [28133, 5942256, 1322512, 7210428]},
+    }
 
     def __init__(self, input: Processor, **options):
         """Constructor method

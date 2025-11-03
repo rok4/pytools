@@ -186,7 +186,9 @@ def load_conversion() -> None:
     To process data from input to output format, several processors can be chained
 
     * GETTILE_PARAMS -> COUNT : Gettile2tileindexProcessor -> CountProcessor
-    * GETTILE_PARAMS -> SLAB : Gettile2tileindexProcessor -> SlabProcessor
+    * GETTILE_PARAMS -> SLAB : Gettile2tileindexProcessor -> Tileindex2slabProcessor
+    * PYRAMID_LIST -> SLAB : Slablist2slabProcessor
+    * PYRAMID_LIST -> HEATMAP : Slablist2slabProcessor -> Slab2pointProcessor -> HeatmapProcessor
     * GETTILE_PARAMS -> HEATMAP : Gettile2tileindexProcessor -> Tileindex2pointProcessor -> HeatmapProcessor
     * GEOMETRY -> GETTILE_PARAMS : Geometry2tileindexProcessor -> Tileindex2gettileProcessor
     """
@@ -202,6 +204,17 @@ def load_conversion() -> None:
             conversion_processor = HeatmapProcessor(Tileindex2pointProcessor(tp), **output_options)
         elif args.output_format == "SLAB":
             conversion_processor = Tileindex2slabProcessor(tp, **output_options)
+
+    elif args.input_format == "PYRAMID_LIST":
+        tp = Slablist2slabProcessor(reader_processor, **input_options)
+
+        if args.output_format == "SLAB":
+            conversion_processor = tp
+
+        if args.output_format == "HEATMAP":
+            conversion_processor = HeatmapProcessor(
+                Slab2pointProcessor(tp, **input_options), **output_options
+            )
 
     elif args.input_format == "GEOMETRY":
         tp = Geometry2tileindexProcessor(reader_processor, **input_options)

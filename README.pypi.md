@@ -165,12 +165,19 @@ Availables conversions (mandatory options in bold, optionnal options in italic) 
 | Input format   | Input options                                     | Output format  | Output options                                                            | Description                                                                                          |
 |----------------|---------------------------------------------------|----------------|---------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
 | GETTILE_PARAMS | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*                                    | COUNT          |                                                                           | Count the GetTiles requests using the pivot TMS and optionnally the provided level and layer                   |
+| GETTILE_PARAMS   |                                                                                                           | SLAB             | **`size=<widthwise>x<heightwise>`**, **`storage=(FILE\|S3)`**                                         | Generate slab's informations for each requested tile (indices and storage path)                                                                                                                                                                                                                                      |
 | GETTILE_PARAMS | *`levels=<id>[,<id> ...]`*,*`layers=<id>[,<id> ...]`*                                    | HEATMAP        | **`bbox=<xmin>,<ymin>,<xmax>,<ymax> or area=<id>`**, **`dimensions=<width>x<height> or level=<id>`** | Create an heat map of requested tiles on the provided area, optionnaly filtering with provided level and layer |
 | GEOMETRY       | **`format=<WKT\|GeoJSON\|WKB>`**,**`level=<id>`** | GETTILE_PARAMS |                                                                           | Generate GetTile query parameters for tiles intersecting input geometries for the provided level     |
+| PYRAMID_LIST     | **`storage=(FILE\|S3)`**, `depth=<int>`                                                                   | SLAB             |                                                                                                      | Generate slab's informations from pyramid's list lines                                                                                                                                                                                                                                                    |
+| PYRAMID_LIST     | **`storage=(FILE\|S3)`**, *`depth=<int>`*, **`size=<widthwise>x<heightwise>`**, *`levels=<id>[,<id> ...]`* | HEATMAP          | **`bbox=<xmin>,<ymin>,<xmax>,<ymax> or area=<id>`**, **`dimensions=<width>x<height> or level=<id>`** | Generate slabs' heatmap from pyramid's list lines                                                                                                                                                                                                                                                |
 
 Available areas for a heatmap :
 
 * `EPSG:3857`
+  * `FXX` (European France)
+* `EPSG:2154`
+  * `FXX` (European France)
+* `IGNF:LAMB93`
   * `FXX` (European France)
 
 Example (GETTILE_PARAMS -> HEATMAP) :
@@ -180,3 +187,11 @@ Example (GETTILE_PARAMS -> HEATMAP) :
 Example (GETTILE_PARAMS -> HEATMAP) with predefined area and pixel-level superposition:
 
 `tmsizer -i logs.txt --tms PM -if GETTILE_PARAMS -of HEATMAP -oo area=FXX -oo level=15 -o heatmap.tif`
+
+Exemple (GETTILE_PARAMS -> SLAB) for a tile :
+
+`echo "/?TILEMATRIXSET=LAMB93_5cm&TILEMATRIX=18&TILECOL=4158&TILEROW=27790" | tmsizer --tms LAMB93_5cm -if GETTILE_PARAMS -of SLAB -oo storage=S3 -oo size=16x16`
+
+Exemple (PYRAMID_LIST -> HEATMAP) for a full pyramid's list :
+
+`tmsizer -i pyramid.list --tms 2154_5cm -if PYRAMID_LIST -of HEATMAP -io storage=S3 -io size=16x16 -io levels=22 -oo area=FXX -oo level=18 -o heatmap.tif --progress`

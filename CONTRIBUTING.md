@@ -4,7 +4,12 @@ Merci d'envisager de contribuer à ce projet !
 
 ## Git hooks
 
-Nous utilisons les git hooks via [pre-commit](https://pre-commit.com/) pour appliquer et vérifier automatiquement certaines "règles". Veuillez l'installer avant de pousser un commit.
+Nous utilisons les git hooks via [pre-commit](https://pre-commit.com/) pour appliquer et vérifier automatiquement certaines conventions. Veuillez l'installer avant de pousser un commit :
+
+```
+pip install pre-commit
+pre-commit install
+```
 
 Voir le fichier de configuration correspondant : `.pre-commit-config.yaml`.
 

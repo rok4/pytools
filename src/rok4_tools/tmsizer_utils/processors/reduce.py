@@ -79,7 +79,7 @@ class HeatmapProcessor(Processor):
 
     Attributes:
         __input (Processor): Processor from which data is read
-        __bbox (Tuple[float, float, float, float]): Bounding box of the heat map (xmin,ymin,xmax,ymax)
+        __bbox (List[float, float, float, float]): Bounding box of the heat map (xmin,ymin,xmax,ymax)
         __dimensions (Tuple[int, int]): Pixel dimensions of the heat map (width, height)
         __resolutions (Tuple[float, float]): Pixel resolution (x resolution, y resolution)
     """
@@ -120,7 +120,6 @@ class HeatmapProcessor(Processor):
         if "bbox" in options:
             try:
                 self.__bbox = [float(c) for c in options["bbox"].split(",")]
-                self.__bbox = tuple(self.__bbox)
             except ValueError as e:
                 raise ValueError(f"Option 'bbox' contains non float values : {e}")
 
